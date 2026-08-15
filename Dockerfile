@@ -13,6 +13,9 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
+# Copy JSON database/data into the final image
+COPY data ./data
+
 EXPOSE 10000
 
 CMD ["java", "-jar", "app.jar"]
