@@ -339,8 +339,16 @@ async function loadMonthlyStatus(){
   const notification=
    staff && x.status!=='PAID'
    ? `<div class="notify">
-      <button onclick="openWhatsApp(${JSON.stringify(x.memberName)},${JSON.stringify(x.phoneNumber)},${JSON.stringify(month)},${Number(x.expectedAmount||0)})">💬</button>
-      <button onclick="openEmail(${JSON.stringify(x.memberName)},${JSON.stringify(x.email||'')},${JSON.stringify(month)},${Number(x.expectedAmount||0)})">📧</button>
+      <button type="button" class="whatsappBtn"
+       data-name="${escapeHtml(x.memberName||'')}"
+       data-phone="${escapeHtml(x.phoneNumber||'')}"
+       data-month="${escapeHtml(month||'')}"
+       data-amount="${Number(x.expectedAmount||0)}">💬</button>
+      <button type="button" class="emailBtn"
+       data-name="${escapeHtml(x.memberName||'')}"
+       data-email="${escapeHtml(x.email||'')}"
+       data-month="${escapeHtml(month||'')}"
+       data-amount="${Number(x.expectedAmount||0)}">📧</button>
       </div>`
    : '';
 
@@ -904,12 +912,11 @@ function openWhatsApp(name, phone, month, amount) {
         `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
 
     const whatsappUrl =
-        'https://web.whatsapp.com/send?phone=' +
-        clean +
-        '&text=' +
+        'https://wa.me/' + clean + '?text=' +
         encodeURIComponent(message);
 
-    window.location.href = whatsappUrl;
+    const opened = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.href = whatsappUrl;
 }
 
 function openEmail(name, email, month, amount) {
@@ -934,8 +941,22 @@ function openEmail(name, email, month, amount) {
         '&su=' + encodeURIComponent(subject) +
         '&body=' + encodeURIComponent(body);
 
-    window.location.href = gmailUrl;
+    const opened = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.href = gmailUrl;
 }
+
+// Notification button handlers.
+document.addEventListener('click',function(event){
+ const whatsappButton=event.target.closest('.whatsappBtn');
+ if(whatsappButton){
+  openWhatsApp(whatsappButton.dataset.name,whatsappButton.dataset.phone,whatsappButton.dataset.month,Number(whatsappButton.dataset.amount||0));
+  return;
+ }
+ const emailButton=event.target.closest('.emailBtn');
+ if(emailButton){
+  openEmail(emailButton.dataset.name,emailButton.dataset.email,emailButton.dataset.month,Number(emailButton.dataset.amount||0));
+ }
+});
 
 // Try to restore an existing server session after refresh.
 (async function restoreSession(){
