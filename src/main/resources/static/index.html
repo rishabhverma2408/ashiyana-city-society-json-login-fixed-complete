@@ -944,6 +944,67 @@ function openEmail(name, email, month, amount) {
     if (!opened) window.location.href = gmailUrl;
 }
 
+
+async function shareNotification(name, phone, month, amount) {
+    const message =
+        `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
+
+    const shareData = {
+        title: 'Society Payment Pending',
+        text: message
+    };
+
+    if (phone && String(phone).trim()) {
+        shareData.text += `\n\nMember Phone: ${phone}`;
+    }
+
+    // Mobile/tablet: open the device's native share sheet.
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (error) {
+            // User cancelled the share dialog.
+        }
+        return;
+    }
+
+    // Desktop/browser fallback: copy the message.
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(shareData.text);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = shareData.text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+        }
+
+        alert('Notification text copied. You can paste it into WhatsApp, Gmail, Messages, Telegram, or another app.');
+    } catch (error) {
+        alert('Unable to open the share menu or copy the notification text.');
+    }
+}
+
+document.addEventListener('click', function(event) {
+    const button = event.target.closest('.shareBtn');
+
+    if (!button) {
+        return;
+    }
+
+    shareNotification(
+        button.dataset.name || '',
+        button.dataset.phone || '',
+        button.dataset.month || '',
+        Number(button.dataset.amount || 0)
+    );
+});
+
 // Try to restore an existing server session after refresh.
 (async function restoreSession(){
  try{
@@ -958,58 +1019,3 @@ function openEmail(name, email, month, amount) {
 </script>
 </body>
 </html>
-
-async function shareNotification(name, phone, month, amount) {
-    const message =
-        `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
-
-    const shareData = {
-        title: 'Society Payment Pending',
-        text: message
-    };
-
-    // Add the phone number only when available.
-    if (phone && String(phone).trim()) {
-        shareData.text += `\n\nMember Phone: ${phone}`;
-    }
-
-    if (navigator.share) {
-        try {
-            await navigator.share(shareData);
-        } catch (error) {
-            // User cancelled the native share dialog.
-        }
-        return;
-    }
-
-    // Desktop/unsupported-browser fallback.
-    try {
-        await navigator.clipboard.writeText(shareData.text);
-        alert('Notification text copied. You can paste it into WhatsApp, Gmail, Messages, or another app.');
-    } catch (error) {
-        const textArea = document.createElement('textarea');
-        textArea.value = shareData.text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        alert('Notification text copied. You can paste it into WhatsApp, Gmail, Messages, or another app.');
-    }
-}
-
-document.addEventListener('click', function (event) {
-    const shareButton = event.target.closest('.shareBtn');
-
-    if (!shareButton) {
-        return;
-    }
-
-    shareNotification(
-        shareButton.dataset.name || '',
-        shareButton.dataset.phone || '',
-        shareButton.dataset.month || '',
-        Number(shareButton.dataset.amount || 0)
-    );
-});
