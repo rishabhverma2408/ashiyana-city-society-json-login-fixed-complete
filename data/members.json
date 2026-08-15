@@ -1,0 +1,31 @@
+[ {
+  "id" : 1,
+  "memberId" : "5630",
+  "secretCode" : "231961",
+  "flatNumber" : "a 502",
+  "memberName" : "shaski",
+  "phoneNumber" : "123456",
+  "email" : "",
+  "expectedAmount" : 200.0,
+  "passwordHash" : "$2a$10$7tLLOUCEVXcLfGgcEaNe0et7kgfWPmGRABUS6p9yFtNV3HciDCjti"
+}, {
+  "id" : 2,
+  "memberId" : "4399",
+  "secretCode" : "206158",
+  "flatNumber" : "a800",
+  "memberName" : "Deepak",
+  "phoneNumber" : "1234567",
+  "email" : "",
+  "expectedAmount" : 200.0,
+  "passwordHash" : "$2a$10$o666IO45.TG59VrfC6ERW.UTH519jUg3MtOuBVimgONW9jLI1Ul0K"
+}, {
+  "id" : 3,
+  "memberId" : "8846",
+  "secretCode" : "936345",
+  "flatNumber" : "a929",
+  "memberName" : "hello",
+  "phoneNumber" : "12345",
+  "email" : "",
+  "expectedAmount" : 200.0,
+  "passwordHash" : "$2a$10$VMQpMmPYIld658Wh1Puo4.s0RIoPNuD/X2BFUWmhuWZGzLWVG9DJK"
+} ]

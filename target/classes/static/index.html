@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ashiyana City I Society Management App</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#222}
+header{background:#17324d;color:#fff;padding:18px}
+h1{margin:0;font-size:23px}
+main{max-width:1200px;margin:auto;padding:15px}
+.card,section,.member{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}
+.login{max-width:420px;margin:45px auto}
+input,select,button{width:100%;padding:11px;margin:5px 0;border:1px solid #ccc;border-radius:7px}
+button{background:#17324d;color:#fff;border:0;cursor:pointer}
+.danger{background:#dc3545}.green{background:#198754}.secondary{background:#6c757d}
+.hidden{display:none!important}.err{color:#b00020}.ok{color:#087f23}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.metric{background:#fff;padding:15px;border-radius:10px}
+.metric b{display:block;font-size:23px;margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.fieldLabel{display:flex;flex-direction:column;font-size:13px;font-weight:bold;color:#384b5c}
+.fieldLabel input,.fieldLabel select{margin:5px 0 0}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.member h3{margin:0 0 5px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top button{width:auto}.small{font-size:12px;color:#666}.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.sectionHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sectionHeader h2{margin:0}
+.sectionHeader button{width:auto;min-width:140px}
+.statusTable{width:100%;border-collapse:collapse;margin-top:12px}
+.statusTable th,.statusTable td{border:1px solid #ddd;padding:9px;text-align:left}
+.statusTable th{background:#f0f3f5}
+.paid{color:#087f23;font-weight:bold}.pending{color:#b00020;font-weight:bold}.partial{color:#b36b00;font-weight:bold}
+.tableWrap{overflow-x:auto}
+.notify{display:flex;gap:5px}.notify button{width:auto;padding:7px 10px}
+.societyLinks button{margin-top:6px}
+@media(max-width:700px){h1{font-size:19px}.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{align-items:flex-start}.row{display:block}.statusTable{font-size:13px;min-width:850px}.sectionHeader{align-items:flex-start}.sectionHeader h2{font-size:18px}}
+</style>
+</head>
+<body>
+<header><h1>Ashiyana City I Society Management App</h1><div>Kudi Kheda, Dadri</div></header>
+<main>
+<div id="loginPanel" class="login card">
+<h2>Login</h2>
+<input id="loginUser" placeholder="Username / Phone Number" autocomplete="username">
+<input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+<button onclick="doLogin()">Login</button>
+<button class="secondary" onclick="showReset()">Reset Password</button>
+<div id="loginError" class="err"></div>
+</div>
+<div id="resetPanel" class="login card hidden">
+<h2>Reset Password</h2>
+<input id="resetPhone" placeholder="Phone Number">
+<input id="resetCurrent" type="password" placeholder="Current Password">
+<input id="resetSecret" placeholder="6-digit Secret Code">
+<input id="resetNew" type="password" minlength="6" maxlength="15" placeholder="New Password (6-15 characters)">
+<button onclick="resetPassword()">Change Password</button>
+<button class="secondary" onclick="showLogin()">Back to Login</button>
+<div id="resetMsg"></div>
+</div>
+<div id="app" class="hidden">
+<div id="currentDuesBanner" class="card">Checking current month dues...</div>
+<div class="card top"><div><h2 id="welcome" style="margin:0"></h2><div id="flatWelcome" class="small"></div></div><button onclick="logout()">Logout</button></div>
+<div class="cards"><div class="metric">Total Flats<b id="mFlats">0</b></div><div class="metric">Collected<b id="mCollected">₹0</b></div><div class="metric">Expenses<b id="mExpenses">₹0</b></div><div class="metric">Current Fund<b id="mBalance">₹0</b></div></div>
+<section id="paymentStatusSection"><h2>Payment Status Details</h2><div class="row"><select id="statusMonth" onchange="loadMonthlyStatus()"></select></div><div id="paymentSummary"></div><div class="tableWrap"><table class="statusTable"><thead id="statusHead"></thead><tbody id="paymentStatusBody"></tbody></table></div></section>
+<section id="memberManagementSection" class="hidden"><div class="sectionHeader"><h2>Add Member</h2><button id="memberToggleButton" onclick="toggleMemberForm()">➕ Add Member</button></div><div id="memberForm" class="hidden"><div class="grid"><input id="fFlat" placeholder="Flat Number *"><input id="fName" placeholder="Member Name *"><input id="fPhone" placeholder="Phone Number *"><input id="fEmail" type="email" placeholder="Email ID"><input id="fContribution" type="number" min="1" placeholder="Monthly Contribution *"><input id="fPassword" type="password" minlength="6" maxlength="15" placeholder="Password (6-15 chars) *"></div><button class="green" onclick="createMember()">Create Member</button><div id="createMsg"></div></div></section>
+<section id="paymentManagementSection" class="hidden"><div class="sectionHeader"><h2>Member Payment Management</h2><button id="paymentToggleButton" onclick="togglePaymentForm()">➕ Add Payment</button></div><div id="paymentForm" class="hidden"><div class="grid"><select id="pMember" onchange="loadSelectedPayment()"><option value="">Select Member</option></select><input id="pAmount" type="number" min="1" placeholder="Amount *"><label class="fieldLabel">Payment Received Date *<input id="pDate" type="date"></label><label class="fieldLabel">Contribution For Month *<input id="pMonth" type="month" onchange="loadSelectedPayment()"></label><select id="pMethod"><option value="UPI">UPI</option><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select><input id="pTxn" placeholder="Transaction ID"></div><div class="small">Payment status and monthly collection are calculated using <b>Contribution For Month</b>. Payment Received Date is saved for reference only.</div><div id="selectedPaymentInfo" class="card">Select a member and month to view payment details.</div><button class="green" onclick="savePayment()">Save Payment / Mark Done</button></div></section>
+<section id="expenseManagementSection" class="hidden"><div class="sectionHeader"><h2>Manage Society Expenses</h2><button id="expenseToggleButton" onclick="toggleExpenseForm()">➕ Add Expense</button></div><div id="expenseForm" class="hidden"><div class="grid"><input id="eDate" type="date"><input id="eCategory" placeholder="Category *"><input id="eDescription" placeholder="Description"><input id="eAmount" type="number" min="1" placeholder="Amount *"><input id="ePaidTo" placeholder="Paid To"></div><button class="green" onclick="saveExpense()">Save Expense</button></div></section>
+<div id="memberList" class="hidden"></div><div id="expenseList" class="hidden"></div>
+<section><h2>Society Information</h2><button onclick="window.location.href='/members.html'">👥 Click to See Society Members Details</button><button onclick="window.location.href='/expenses.html'">💰 Click to See Society Expenses Details</button></section>
+</div>
+</main>
+<script>
+let sessionUser=null;
+let membersCache=[];
+let expensesCache=[];
+let paymentsCache=[];
+
+const $=id=>document.getElementById(id);
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+
+function showReset(){
+ $('loginPanel').classList.add('hidden');
+ $('resetPanel').classList.remove('hidden');
+}
+function showLogin(){
+ $('resetPanel').classList.add('hidden');
+ $('loginPanel').classList.remove('hidden');
+}
+
+async function doLogin(){
+ $('loginError').textContent='';
+ try{
+  const r=await fetch('/api/auth/login',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({
+    username:$('loginUser').value.trim(),
+    password:$('loginPass').value
+   })
+  });
+  const x=await r.json();
+  if(!r.ok){
+   $('loginError').textContent='Invalid credentials';
+   return;
+  }
+  sessionUser=x;
+  openApp();
+ }catch(e){
+  $('loginError').textContent='Invalid credentials';
+ }
+}
+
+async function resetPassword(){
+ const body={
+  phone:$('resetPhone').value.trim(),
+  currentPassword:$('resetCurrent').value,
+  secretCode:$('resetSecret').value.trim(),
+  newPassword:$('resetNew').value
+ };
+ try{
+  const r=await fetch('/api/auth/reset',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(body)
+  });
+  const x=await r.json();
+  $('resetMsg').textContent=r.ok?(x.message||'Password changed successfully'):(x.message||x.error||'Reset failed');
+ }catch(e){
+  $('resetMsg').textContent='Reset failed';
+ }
+}
+
+async function openApp(){
+ $('loginPanel').classList.add('hidden');
+ $('resetPanel').classList.add('hidden');
+ $('app').classList.remove('hidden');
+
+ const r=await fetch('/api/residents');
+ membersCache=await r.json();
+
+ const me=membersCache.find(
+  x=>String(x.phoneNumber)===String(sessionUser.username)
+ );
+
+ $('welcome').textContent='Welcome, '+(me?me.memberName:sessionUser.username);
+ $('flatWelcome').textContent=me?'Flat: '+me.flatNumber:'';
+
+ const staff=
+  sessionUser.role==='ADMIN' ||
+  sessionUser.role==='SECRETARY';
+
+ $('memberManagementSection').classList.toggle('hidden',!staff);
+ $('paymentManagementSection').classList.toggle('hidden',!staff);
+ $('expenseManagementSection').classList.toggle('hidden',!staff);
+
+ $('memberForm').classList.add('hidden');
+ $('paymentForm').classList.add('hidden');
+ $('expenseForm').classList.add('hidden');
+
+ $('memberToggleButton').textContent='➕ Add Member';
+ $('paymentToggleButton').textContent='➕ Add Payment';
+ $('expenseToggleButton').textContent='➕ Add Expense';
+
+ await load();
+ await loadCurrentMonthDues();
+}
+
+async function logout(){
+ await fetch('/api/auth/logout',{method:'POST'});
+ location.reload();
+}
+
+async function loadCurrentMonthDues(){
+ const start=new Date(2026,7,1);
+ const now=new Date();
+ if(now<start){
+  $('currentDuesBanner').innerHTML='<b>ℹ️ No Dues Applicable</b><br>Society payment system starts from August 2026.';
+  return;
+ }
+ const month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+ try{
+  const r=await fetch('/api/payments/status?month='+encodeURIComponent(month));
+  if(!r.ok){$('currentDuesBanner').textContent='Unable to load current month dues.';return;}
+  const rows=await r.json();
+  let row=null;
+  if(sessionUser.role==='MEMBER'){
+   row=rows.find(x=>String(x.phoneNumber)===String(sessionUser.username));
+  }
+  if(!row){$('currentDuesBanner').classList.add('hidden');return;}
+  const label=now.toLocaleString('en-IN',{month:'long',year:'numeric'});
+  const expected=Number(row.expectedAmount||0), paid=Number(row.paidAmount||0), due=Math.max(0,expected-paid);
+  if(row.status==='PAID'){
+   $('currentDuesBanner').innerHTML='<strong class="paid">✅ No Dues</strong><br>'+label+'<br>Monthly Contribution: <b>'+money(expected)+'</b><br>Paid: <b>'+money(paid)+'</b>';
+  }else if(row.status==='PARTIAL'){
+   $('currentDuesBanner').innerHTML='<strong class="partial">⚠️ Partial Payment</strong><br>'+label+'<br>Monthly Contribution: <b>'+money(expected)+'</b><br>Paid: <b>'+money(paid)+'</b><br>Remaining Due: <b>'+money(due)+'</b>';
+  }else{
+   $('currentDuesBanner').innerHTML='<strong class="pending">⚠️ Payment Due</strong><br>'+label+'<br>Monthly Contribution: <b>'+money(expected)+'</b><br>Paid: <b>'+money(paid)+'</b><br>Amount Due: <b>'+money(due)+'</b>';
+  }
+ }catch(e){$('currentDuesBanner').textContent='Unable to load current month dues.';}
+}
+
+function toggleMemberForm(){
+ const f=$('memberForm');
+ const b=$('memberToggleButton');
+ f.classList.toggle('hidden');
+ b.textContent=f.classList.contains('hidden')?'➕ Add Member':'➖ Hide Member';
+}
+
+function togglePaymentForm(){
+ const f=$('paymentForm');
+ const b=$('paymentToggleButton');
+ f.classList.toggle('hidden');
+ b.textContent=f.classList.contains('hidden')?'➕ Add Payment':'➖ Hide Payment';
+}
+
+function toggleExpenseForm(){
+ const f=$('expenseForm');
+ const b=$('expenseToggleButton');
+ f.classList.toggle('hidden');
+ b.textContent=f.classList.contains('hidden')?'➕ Add Expense':'➖ Hide Expense';
+}
+
+function initializeMonths(){
+ const now=new Date();
+ const options=[];
+ // Include historical and upcoming months so payments recorded early or late
+ // can always be viewed and managed from the status selector.
+ for(let offset=0;offset>=-12;offset--){
+  const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
+  const value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  const label=d.toLocaleString('en-IN',{month:'long',year:'numeric'});
+  options.push(`<option value="${value}">${label}</option>`);
+ }
+ for(let offset=1;offset<=6;offset++){
+  const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
+  const value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  const label=d.toLocaleString('en-IN',{month:'long',year:'numeric'});
+  options.push(`<option value="${value}">${label}</option>`);
+ }
+
+ $('pMonth').innerHTML='<option value="">Select Month</option>'+options.join('');
+ $('statusMonth').innerHTML=options.join('');
+}
+
+async function load(){
+ const [d,rs,es,ps]=await Promise.all([
+  fetch('/api/dashboard').then(x=>x.json()),
+  fetch('/api/residents').then(x=>x.json()),
+  fetch('/api/expenses').then(x=>x.json()),
+  fetch('/api/payments').then(x=>x.json())
+ ]);
+
+ membersCache=rs;
+ expensesCache=es;
+ paymentsCache=ps;
+
+ $('mFlats').textContent=d.totalFlats;
+ $('mCollected').textContent=money(d.totalCollected);
+ $('mExpenses').textContent=money(d.totalExpenses);
+ $('mBalance').textContent=money(d.currentBalance);
+
+ $('pMember').innerHTML=
+  '<option value="">Select Member</option>'+
+  rs.map(x=>`<option value="${x.id}">${x.flatNumber} - ${x.memberName}</option>`).join('');
+
+ renderMembers(rs);
+ renderExpenses(es);
+
+ initializeMonths();
+ loadMonthlyStatus();
+}
+
+async function loadMonthlyStatus(){
+ const month=$('statusMonth').value;
+ if(!month)return;
+
+ const r=await fetch('/api/payments/status?month='+encodeURIComponent(month));
+ if(!r.ok){
+  $('paymentStatusBody').innerHTML='<tr><td>Unable to load payment status</td></tr>';
+  return;
+ }
+
+ const rows=await r.json();
+
+ let paid=0,pending=0,partial=0,collected=0,expected=0;
+
+ rows.forEach(x=>{
+  expected+=Number(x.expectedAmount||0);
+  collected+=Number(x.paidAmount||0);
+  if(x.status==='PAID')paid++;
+  else if(x.status==='PARTIAL')partial++;
+  else pending++;
+ });
+
+ $('paymentSummary').innerHTML=`
+ <div class="card">
+ <b>Total Members:</b> ${rows.length}
+ &nbsp; | &nbsp;
+ <b>Paid:</b> <span class="paid">${paid}</span>
+ &nbsp; | &nbsp;
+ <b>Pending:</b> <span class="pending">${pending}</span>
+ &nbsp; | &nbsp;
+ <b>Partial:</b> <span class="partial">${partial}</span>
+ &nbsp; | &nbsp;
+ <b>Expected:</b> ${money(expected)}
+ &nbsp; | &nbsp;
+ <b>Collected:</b> ${money(collected)}
+ </div>`;
+
+ const staff=
+  sessionUser.role==='ADMIN' ||
+  sessionUser.role==='SECRETARY';
+
+ $('statusHead').innerHTML=`
+ <tr>
+ <th>Member Name</th>
+ <th>Phone Number</th>
+ <th>Flat</th>
+ <th>Month</th>
+ <th>Contribution</th>
+ <th>Paid</th>
+ <th>Payment Date</th>
+ <th>Status</th>
+ ${staff?'<th>Notification</th>':''}
+ ${staff?'<th>Actions</th>':''}
+ </tr>`;
+
+ $('paymentStatusBody').innerHTML=rows.map(x=>{
+  const statusClass=
+   x.status==='PAID'?'paid':
+   x.status==='PARTIAL'?'partial':'pending';
+
+  const notification=
+   staff && x.status!=='PAID'
+   ? `<div class="notify">
+      <button onclick="openWhatsApp(${JSON.stringify(x.memberName)},${JSON.stringify(x.phoneNumber)},${JSON.stringify(month)},${Number(x.expectedAmount||0)})">💬</button>
+      <button onclick="openEmail(${JSON.stringify(x.memberName)},${JSON.stringify(x.email||'')},${JSON.stringify(month)},${Number(x.expectedAmount||0)})">📧</button>
+      </div>`
+   : '';
+
+  const canDelete=
+   x.paymentId && (sessionUser.role==='ADMIN' ||
+    (sessionUser.role==='SECRETARY' && secretaryCanDeleteMonth(month)));
+  const actions=canDelete
+   ? `<button class="danger" onclick="deletePayment(${Number(x.paymentId)})">Delete Payment</button>`
+   : '-';
+
+  return `<tr>
+   <td>${escapeHtml(x.memberName)}</td>
+   <td>${escapeHtml(x.phoneNumber)}</td>
+   <td>${escapeHtml(x.flatNumber)}</td>
+   <td>${escapeHtml(month)}</td>
+   <td>${money(x.expectedAmount)}</td>
+   <td>${money(x.paidAmount)}</td>
+   <td>${x.paymentDate||'-'}</td>
+   <td class="${statusClass}">${x.status==='PAID'?'✅ PAID':x.status==='PARTIAL'?'⚠️ PARTIAL':'❌ PENDING'}</td>
+   ${staff?'<td>'+notification+'</td>':''}
+   ${staff?'<td>'+actions+'</td>':''}
+  </tr>`;
+ }).join('');
+}
+
+function secretaryCanDeleteMonth(month){
+ const today=new Date();
+ const current=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+ const previousDate=new Date(today.getFullYear(),today.getMonth()-1,1);
+ const previous=previousDate.getFullYear()+'-'+String(previousDate.getMonth()+1).padStart(2,'0');
+ return month===current||month===previous;
+}
+
+async function deletePayment(id){
+ if(!confirm('Delete this payment record? This cannot be undone.')) return;
+ const r=await fetch('/api/payments/'+id,{method:'DELETE'});
+ const x=await r.json();
+ if(!r.ok){
+  alert(x.error||x.message||'Could not delete payment');
+  return;
+ }
+ await load();
+}
+
+function escapeHtml(value){
+ return String(value??'')
+  .replaceAll('&','&amp;')
+  .replaceAll('<','&lt;')
+  .replaceAll('>','&gt;')
+  .replaceAll('"','&quot;')
+  .replaceAll("'","&#039;");
+}
+
+async function loadSelectedPayment(){
+ const memberId=$('pMember').value;
+ const month=$('pMonth').value;
+ const info=$('selectedPaymentInfo');
+
+ if(!memberId||!month){
+  info.innerHTML='Select a member and month to view payment details.';
+  return;
+ }
+
+ const member=membersCache.find(x=>Number(x.id)===Number(memberId));
+ if(!member){
+  info.innerHTML='Member not found.';
+  return;
+ }
+
+ const payment=paymentsCache
+  .filter(p=>Number(p.residentId)===Number(memberId)
+    &&String(p.contributionMonth)===String(month))
+  .sort((a,b)=>Number(b.id)-Number(a.id))[0];
+
+ if(!payment){
+  info.innerHTML=`
+   <b>${escapeHtml(member.memberName)}</b> — ${escapeHtml(member.flatNumber)}
+   <br>Month: ${escapeHtml(month)}
+   <br>Monthly Contribution: ${money(member.expectedAmount)}
+   <br>Paid Amount: ₹0
+   <br><span class="pending">❌ PENDING</span>`;
+  $('pAmount').value=member.expectedAmount||'';
+  return;
+ }
+
+ info.innerHTML=`
+  <b>${escapeHtml(member.memberName)}</b> — ${escapeHtml(member.flatNumber)}
+  <br>Month: ${escapeHtml(month)}
+  <br>Monthly Contribution: ${money(member.expectedAmount)}
+  <br>Paid Amount: ${money(payment.amount)}
+  <br>Payment Date: ${payment.paymentDate||'-'}
+  <br>Payment Method: ${escapeHtml(payment.paymentMethod||'-')}
+  <br>Transaction ID: ${escapeHtml(payment.transactionId||'-')}
+  <br><span class="${payment.status==='PAID'?'paid':'pending'}">${payment.status==='PAID'?'✅ PAID':'❌ PENDING'}</span>`;
+
+ $('pAmount').value=payment.amount||member.expectedAmount||'';
+ $('pDate').value=payment.paymentDate||'';
+ $('pMethod').value=payment.paymentMethod||'UPI';
+ $('pTxn').value=payment.transactionId||'';
+}
+
+async function savePayment(){
+ const memberId=$('pMember').value;
+ const month=$('pMonth').value;
+
+ if(!memberId||!month){
+  alert('Please select member and month');
+  return;
+ }
+
+ const amount=Number($('pAmount').value);
+ const date=$('pDate').value;
+
+ if(!amount||amount<=0){
+  alert('Payment amount is required');
+  return;
+ }
+
+ if(!date){
+  alert('Payment date is required');
+  return;
+ }
+
+ const body={
+  amount:amount,
+  paymentDate:date,
+  contributionMonth:month,
+  paymentMethod:$('pMethod').value,
+  transactionId:$('pTxn').value
+ };
+
+ const r=await fetch('/api/payments/resident/'+memberId,{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(body)
+ });
+
+ const x=await r.json();
+
+ if(!r.ok){
+  alert(x.error||x.message||'Payment failed');
+  return;
+ }
+
+ alert('Payment saved / marked as done');
+
+ // Clear payment entry fields after successful save.
+ $('pAmount').value='';
+ $('pDate').value='';
+ $('pTxn').value='';
+ $('paymentForm').classList.add('hidden');
+ $('paymentToggleButton').textContent='➕ Add Payment';
+
+ await load();
+ $('pMember').value=memberId;
+ $('pMonth').value=month;
+ await loadSelectedPayment();
+}
+
+function renderMembers(rs){
+ const admin=sessionUser.role==='ADMIN';
+ const sec=sessionUser.role==='SECRETARY';
+
+ $('memberList').innerHTML=rs.map(x=>{
+  const adminBtns=admin
+   ? `<button onclick="adminEdit(${x.id})">Edit</button>
+      <button class="danger" onclick="deleteMember(${x.id})">Delete</button>
+      <button onclick="showCred('${x.memberId}','${x.secretCode}')">Credentials</button>`
+   : '';
+
+  const secBtn=sec
+   ? `<button onclick="secretaryEdit(${x.id})">Edit Member</button>`
+   : '';
+
+  return `<div class="member">
+   <h3>${escapeHtml(x.flatNumber)} — ${escapeHtml(x.memberName)}</h3>
+   <div>📱 ${escapeHtml(x.phoneNumber)} ${x.email?' · ✉️ '+escapeHtml(x.email):''}</div>
+   <p>Monthly Contribution: ${money(x.expectedAmount)}</p>
+   <div class="actions">${adminBtns}${secBtn}</div>
+  </div>`;
+ }).join('');
+}
+
+function renderExpenses(es){
+ const admin=sessionUser.role==='ADMIN';
+ const sec=sessionUser.role==='SECRETARY';
+ const now=new Date();
+ const currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+
+ $('expenseList').innerHTML=
+  es.slice().sort((a,b)=>Number(b.id)-Number(a.id))
+  .map(x=>{
+   const editable=String(x.expenseDate||'').startsWith(currentMonth);
+   return `<div class="member">
+   <b>${escapeHtml(x.expenseDate)} — ${escapeHtml(x.category)}</b><br>
+   ${escapeHtml(x.description||'')}<br>
+   ${money(x.amount)}${x.paidTo?' — '+escapeHtml(x.paidTo):''}
+   ${(admin||sec)&&editable?`<button onclick="editExpense(${x.id})">Edit</button>`:''}
+   ${(admin||sec)&&editable?`<button class="danger" onclick="deleteExpense(${x.id})">Delete</button>`:''}
+  </div>`;
+  }).join('');
+}
+
+async function createMember(){
+ const password=$('fPassword').value;
+ const fields=[
+  ['Flat Number',$('fFlat').value.trim()],
+  ['Member Name',$('fName').value.trim()],
+  ['Phone Number',$('fPhone').value.trim()],
+  ['Password',password],
+  ['Monthly Contribution',$('fContribution').value]
+ ];
+ const missing=fields.filter(x=>!x[1]).map(x=>x[0]);
+
+ if(missing.length){
+  $('createMsg').textContent='Required: '+missing.join(', ');
+  return;
+ }
+
+ if(password.length<6||password.length>15){
+  $('createMsg').textContent='Password must be between 6 and 15 characters';
+  return;
+ }
+
+ const body={
+  flatNumber:$('fFlat').value.trim(),
+  memberName:$('fName').value.trim(),
+  phoneNumber:$('fPhone').value.trim(),
+  email:$('fEmail').value.trim(),
+  expectedAmount:Number($('fContribution').value),
+  password:password
+ };
+
+ const r=await fetch('/api/residents',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(body)
+ });
+
+ const x=await r.json();
+
+ if(!r.ok){
+  $('createMsg').textContent=x.error||x.message||'Could not create member';
+  return;
+ }
+
+ $('createMsg').innerHTML=
+  `Created: ${escapeHtml(x.memberName)}.
+   Member ID: <b>${escapeHtml(x.memberId)}</b>,
+   Secret Code: <b>${escapeHtml(x.secretCode)}</b>`;
+
+ // Clear member form only after successful creation.
+ $('fFlat').value='';
+ $('fName').value='';
+ $('fPhone').value='';
+ $('fEmail').value='';
+ $('fContribution').value='';
+ $('fPassword').value='';
+ $('memberForm').classList.add('hidden');
+ $('memberToggleButton').textContent='➕ Add Member';
+
+ await load();
+}
+
+async function saveExpense(){
+ const body={
+  expenseDate:$('eDate').value,
+  category:$('eCategory').value.trim(),
+  description:$('eDescription').value.trim(),
+  amount:Number($('eAmount').value),
+  paidTo:$('ePaidTo').value.trim()
+ };
+
+ if(!body.expenseDate||!body.category||!body.amount||body.amount<=0){
+  alert('Expense date, category and amount are required');
+  return;
+ }
+
+ const r=await fetch('/api/expenses',{
+  method:'POST',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(body)
+ });
+
+ const x=await r.json();
+
+ if(!r.ok){
+  alert(x.error||x.message||'Expense failed');
+  return;
+ }
+
+ alert('Expense added successfully');
+
+ $('eDate').value='';
+ $('eCategory').value='';
+ $('eDescription').value='';
+ $('eAmount').value='';
+ $('ePaidTo').value='';
+ $('expenseForm').classList.add('hidden');
+ $('expenseToggleButton').textContent='➕ Add Expense';
+
+ await load();
+}
+
+async function deleteMember(id){
+ if(!confirm('Delete this member?'))return;
+ const r=await fetch('/api/residents/'+id,{method:'DELETE'});
+ if(!r.ok)alert('Only Admin can delete');
+ await load();
+}
+
+async function deleteExpense(id){
+ if(!confirm('Delete this expense?'))return;
+ const r=await fetch('/api/expenses/'+id,{method:'DELETE'});
+ const x=await r.json();
+ if(!r.ok){alert(x.error||x.message||'Could not delete expense');return;}
+ await load();
+}
+
+function showCred(id,secret){
+ alert('Member ID: '+id+'\\nSecret Code: '+secret);
+}
+
+async function secretaryEdit(id){
+ const x=membersCache.find(a=>a.id===id);
+ const flat=prompt('Flat Number',x.flatNumber);
+ if(flat===null)return;
+ const n=prompt('Member Name',x.memberName);
+ if(n===null)return;
+ const phone=prompt('Phone Number',x.phoneNumber);
+ if(phone===null)return;
+ const e=prompt('Email',x.email||'');
+ if(e===null)return;
+ const c=prompt('Monthly Contribution',x.expectedAmount);
+ if(c===null)return;
+
+ const body={
+  flatNumber:flat,
+  memberName:n,
+  phoneNumber:phone,
+  email:e,
+  expectedAmount:Number(c)
+ };
+
+ const r=await fetch('/api/residents/'+id,{
+  method:'PUT',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(body)
+ });
+
+ const z=await r.json();
+ if(!r.ok)alert(z.error||z.message||'Update failed');
+ await load();
+}
+
+async function adminEdit(id){
+ const x=membersCache.find(a=>a.id===id);
+
+ const flat=prompt('Flat Number',x.flatNumber);
+ if(flat===null)return;
+ const n=prompt('Member Name',x.memberName);
+ if(n===null)return;
+ const phone=prompt('Phone Number',x.phoneNumber);
+ if(phone===null)return;
+ const email=prompt('Email',x.email||'');
+ if(email===null)return;
+ const c=prompt('Monthly Contribution',x.expectedAmount);
+ if(c===null)return;
+
+ const body={
+  flatNumber:flat,
+  memberName:n,
+  phoneNumber:phone,
+  email:email,
+  expectedAmount:Number(c)
+ };
+
+ const r=await fetch('/api/residents/'+id,{
+  method:'PUT',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(body)
+ });
+
+ const z=await r.json();
+ if(!r.ok)alert(z.error||z.message||'Update failed');
+ await load();
+}
+
+async function editExpense(id){
+ const x=expensesCache.find(a=>Number(a.id)===Number(id));
+ const amt=prompt('Amount',x.amount);
+ if(amt===null)return;
+ const desc=prompt('Description',x.description||'');
+ if(desc===null)return;
+
+ const body={
+  expenseDate:x.expenseDate,
+  category:x.category,
+  description:desc,
+  amount:Number(amt),
+  paidTo:x.paidTo||''
+ };
+
+ const r=await fetch('/api/expenses/'+id,{
+  method:'PUT',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify(body)
+ });
+
+ const z=await r.json();
+ if(!r.ok)alert(z.error||z.message||'Update failed');
+ await load();
+}
+
+function openWhatsApp(name,phone,month,amount){
+ let clean=String(phone||'').replace(/\D/g,'');
+ if(clean.length===10)clean='91'+clean;
+
+ const message=
+  `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
+
+ window.open(
+  'https://wa.me/'+clean+'?text='+encodeURIComponent(message),
+  '_blank'
+ );
+}
+
+function openEmail(name,email,month,amount){
+ if(!email){
+  alert('Email address is not available for this member.');
+  return;
+ }
+
+ const subject=
+  'Society Payment Pending - '+month;
+
+ const body=
+  `Dear ${name},%0D%0A%0D%0A`+
+  `Your society maintenance payment of ${money(amount)} for ${month} is currently pending.%0D%0A%0D%0A`+
+  `Please make the payment at your earliest convenience.%0D%0A%0D%0A`+
+  `Thank you,%0D%0A`+
+  `Ashiyana City I Society Management%0D%0A`+
+  `Kudi Kheda, Dadri`;
+
+ window.open(
+  'mailto:'+encodeURIComponent(email)+
+  '?subject='+encodeURIComponent(subject)+
+  '&body='+body,
+  '_blank'
+ );
+}
+
+// Try to restore an existing server session after refresh.
+(async function restoreSession(){
+ try{
+  const r=await fetch('/api/auth/me');
+  const x=await r.json();
+  if(x.authenticated){
+   sessionUser=x;
+   openApp();
+  }
+ }catch(e){}
+})();
+</script>
+</body>
+</html>

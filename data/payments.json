@@ -1,0 +1,19 @@
+[ {
+  "id" : 2,
+  "residentId" : 2,
+  "amount" : 200.0,
+  "paymentDate" : "2026-08-15",
+  "contributionMonth" : "2026-08",
+  "paymentMethod" : "UPI",
+  "transactionId" : "",
+  "status" : "PAID"
+}, {
+  "id" : 3,
+  "residentId" : 2,
+  "amount" : 200.0,
+  "paymentDate" : "2026-08-06",
+  "contributionMonth" : "2026-07",
+  "paymentMethod" : "UPI",
+  "transactionId" : "",
+  "status" : "PAID"
+} ]
