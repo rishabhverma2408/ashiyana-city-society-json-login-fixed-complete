@@ -509,153 +509,92 @@ function downloadPaymentExcel() {
 }
 
 function buildPaymentShareText(month){
-  let paid=0,pending=0,partial=0,collected=0,expected=0;
+ let paid=0,pending=0,partial=0,collected=0,expected=0;
+ const lines=paymentStatusRows
+  .slice()
+  .sort((a,b)=>String(a.flatNumber||'').localeCompare(String(b.flatNumber||''),'en',{numeric:true}))
+  .map((x,i)=>{
+   expected+=Number(x.expectedAmount||0);
+   collected+=Number(x.paidAmount||0);
+   if(x.status==='PAID')paid++;
+   else if(x.status==='PARTIAL')partial++;
+   else pending++;
+   const due=Math.max(0,Number(x.expectedAmount||0)-Number(x.paidAmount||0));
+   return (i+1)+'. Flat '+ (x.flatNumber||'-')
+    +' | '+(x.memberName||'-')
+    +' | '+(x.status||'PENDING')
+    +' | Paid: '+money(x.paidAmount)
+    +(due>0?' | Due: '+money(due):'')
+    +(x.paymentDate?' | Date: '+x.paymentDate:'');
+  });
 
-  const lines=paymentStatusRows
-   .slice()
-   .sort((a,b)=>String(a.flatNumber||'').localeCompare(String(b.flatNumber||''),'en',{numeric:true}))
-   .map((x,i)=>{
-    const expectedAmount=Number(x.expectedAmount||0);
-    const paidAmount=Number(x.paidAmount||0);
-    const due=Math.max(0,expectedAmount-paidAmount);
-
-    expected+=expectedAmount;
-    collected+=paidAmount;
-
-    if(x.status==='PAID') paid++;
-    else if(x.status==='PARTIAL') partial++;
-    else pending++;
-
-    return [
-      (i+1)+'. '+(x.memberName||'-'),
-      'Flat: '+(x.flatNumber||'-'),
-      'Phone: '+(x.phoneNumber||'-'),
-      'Month: '+month,
-      'Contribution: '+money(expectedAmount),
-      'Paid: '+money(paidAmount),
-      'Due: '+money(due),
-      'Status: '+(x.status||'PENDING'),
-      'Payment Date: '+(x.paymentDate||'-'),
-      'Payment Method: '+(x.paymentMethod||'-'),
-      'Transaction ID: '+(x.transactionId||'-'),
-      x.email ? 'Email: '+x.email : ''
-    ].filter(Boolean).join('\n');
-   });
-
-  return [
-   '🏠 Ashiyana City I Society',
-   'Payment Status Details',
-   'Month: '+month,
-   '',
-   '━━━━━━━━━━━━━━━━━━━━',
-   'SUMMARY',
-   '━━━━━━━━━━━━━━━━━━━━',
-   'Total Members: '+paymentStatusRows.length,
-   'Paid: '+paid+' | Pending: '+pending+' | Partial: '+partial,
-   'Expected: '+money(expected),
-   'Collected: '+money(collected),
-   'Total Due: '+money(Math.max(0,expected-collected)),
-   '',
-   '━━━━━━━━━━━━━━━━━━━━',
-   'MEMBER PAYMENT DETAILS',
-   '━━━━━━━━━━━━━━━━━━━━',
-   '',
-   ...lines,
-   '',
-   '━━━━━━━━━━━━━━━━━━━━',
-   'Ashiyana City I Society Management App'
-  ].join('\n');
+ return [
+  'Ashiyana City I Society - Payment Status',
+  'Month: '+month,
+  '',
+  'Summary',
+  'Total Members: '+paymentStatusRows.length,
+  'Paid: '+paid+' | Pending: '+pending+' | Partial: '+partial,
+  'Expected: '+money(expected)+' | Collected: '+money(collected),
+  '',
+  'Member Details',
+  ...lines
+ ].join('\n');
 }
 
 async function copyTextToClipboard(text){
-  try{
-    if(navigator.clipboard && window.isSecureContext){
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  }catch(e){
-    console.log('Clipboard API failed:',e);
-  }
-
-  try{
-    const area=document.createElement('textarea');
-    area.value=text;
-    area.setAttribute('readonly','');
-    area.style.position='fixed';
-    area.style.left='-9999px';
-    area.style.top='0';
-    area.style.width='1px';
-    area.style.height='1px';
-    area.style.opacity='0';
-    document.body.appendChild(area);
-    area.focus();
-    area.select();
-    area.setSelectionRange(0,area.value.length);
-    const ok=document.execCommand('copy');
-    document.body.removeChild(area);
-    return ok;
-  }catch(e){
-    console.log('Clipboard fallback failed:',e);
-    return false;
-  }
+ if(navigator.clipboard&&window.isSecureContext){
+  await navigator.clipboard.writeText(text);
+  return true;
+ }
+ const area=document.createElement('textarea');
+ area.value=text;
+ area.setAttribute('readonly','');
+ area.style.position='fixed';
+ area.style.left='-9999px';
+ document.body.appendChild(area);
+ area.select();
+ const ok=document.execCommand('copy');
+ area.remove();
+ return ok;
 }
 
 async function sharePaymentDetails(){
-  const month=$('statusMonth').value;
+ const month=$('statusMonth').value;
+ if(!month){
+  alert('Please select a month first');
+  return;
+ }
+ if(!paymentStatusRows.length){
+  alert('No payment status data available for this month');
+  return;
+ }
 
-  if(!month){
-    alert('Please select a month first');
-    return;
-  }
+ const text=buildPaymentShareText(month);
+ let copied=false;
+ try{
+  copied=await copyTextToClipboard(text);
+ }catch(e){
+  copied=false;
+ }
 
-  if(!paymentStatusRows || !paymentStatusRows.length){
-    alert('No payment status data available for this month');
-    return;
-  }
-
-  // Build the message from the CURRENT paymentStatusRows data.
-  // This includes all important payment details shown in the table.
-  const text=buildPaymentShareText(month);
-
-  // Copy the complete details first.
-  let copied=false;
+ if(navigator.share){
   try{
-    copied=await copyTextToClipboard(text);
+   await navigator.share({
+    title:'Payment Status - '+month,
+    text:text
+   });
+   if(copied)alert('Payment details copied. You can also paste them in WhatsApp or Messages.');
+   return;
   }catch(e){
-    console.log('Copy failed:',e);
+   if(e&&e.name==='AbortError')return;
   }
+ }
 
-  // On mobile browsers, open the native app chooser.
-  if(navigator.share){
-    try{
-      await navigator.share({
-        title:'Ashiyana City I Society - Payment Details - '+month,
-        text:text
-      });
-
-      return;
-    }catch(e){
-      // User cancelled the share sheet.
-      if(e && e.name==='AbortError'){
-        if(copied){
-          alert('Payment details copied successfully.');
-        }
-        return;
-      }
-
-      console.log('Native share failed:',e);
-    }
-  }
-
-  // Fallback when the browser does not support the native share sheet.
-  if(copied){
-    alert(
-      'Payment details copied successfully. '+
-      'You can paste them into WhatsApp, Gmail, Messages, Telegram, or any other app.'
-    );
-  }else{
-    alert('Unable to copy payment details. Please try again.');
-  }
+ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+ alert(copied
+  ?'Payment details copied to clipboard and WhatsApp opened. Paste if needed, then send.'
+  :'WhatsApp opened with payment details. If text is missing, copy failed — try again from a secure browser.');
 }
 
 function secretaryCanDeleteMonth(month){
@@ -1133,6 +1072,12 @@ async function shareNotification(name, phone, month, amount) {
 document.addEventListener('click', function(event) {
     const button = event.target.closest('.shareBtn');
     if (!button) return;
+
+    // The Payment Details "Share / Copy" button also uses shareBtn.
+    // Only notification buttons have member data attributes.
+    if (!button.dataset.name && !button.dataset.phone && !button.dataset.month) {
+        return;
+    }
 
     shareNotification(
         button.dataset.name || '',
