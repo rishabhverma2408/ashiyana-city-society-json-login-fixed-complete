@@ -1,1097 +1,3605 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ashiyana City I Society Management App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashiyana City I Society Management</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#222}
-header{background:#17324d;color:#fff;padding:18px}
-h1{margin:0;font-size:23px}
-main{max-width:1200px;margin:auto;padding:15px}
-.card,section,.member{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}
-.login{max-width:420px;margin:45px auto}
-input,select,button{width:100%;padding:11px;margin:5px 0;border:1px solid #ccc;border-radius:7px}
-button{background:#17324d;color:#fff;border:0;cursor:pointer}
-.danger{background:#dc3545}.green{background:#198754}.secondary{background:#6c757d}
-.hidden{display:none!important}.err{color:#b00020}.ok{color:#087f23}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.metric{background:#fff;padding:15px;border-radius:10px}
-.metric b{display:block;font-size:23px;margin-top:6px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.fieldLabel{display:flex;flex-direction:column;font-size:13px;font-weight:bold;color:#384b5c}
-.fieldLabel input,.fieldLabel select{margin:5px 0 0}
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.member h3{margin:0 0 5px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.top button{width:auto}.small{font-size:12px;color:#666}.row{display:flex;gap:8px;align-items:center}
-.row>*{flex:1}
-.row .excelBtn{flex:0 0 auto;width:auto;min-width:160px;white-space:nowrap;background:#0f7b3a}
-.row .shareBtn{flex:0 0 auto;width:auto;min-width:160px;white-space:nowrap;background:#25d366;color:#08351a;font-weight:bold}
-.sectionHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.sectionHeader h2{margin:0}
-.sectionHeader button{width:auto;min-width:140px}
-.statusTable{width:100%;border-collapse:collapse;margin-top:12px}
-.statusTable th,.statusTable td{border:1px solid #ddd;padding:9px;text-align:left}
-.statusTable th{background:#f0f3f5}
-.paid{color:#087f23;font-weight:bold}.pending{color:#b00020;font-weight:bold}.partial{color:#b36b00;font-weight:bold}
-.tableWrap{overflow-x:auto}
-.notify{display:flex;gap:5px}.notify button{width:auto;padding:7px 10px}
-.societyLinks button{margin-top:6px}
-@media(max-width:700px){h1{font-size:19px}.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{align-items:flex-start}.row{display:block}.statusTable{font-size:13px;min-width:850px}.sectionHeader{align-items:flex-start}.sectionHeader h2{font-size:18px}}
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4f7fb;
+    color:#1f2937;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none !important;
+}
+
+.login-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.login-card{
+    width:100%;
+    max-width:420px;
+    background:#fff;
+    border-radius:18px;
+    padding:30px;
+    box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+
+.login-card h1{
+    margin:0 0 8px;
+    text-align:center;
+}
+
+.login-card p{
+    text-align:center;
+    color:#6b7280;
+}
+
+.form-group{
+    margin-bottom:16px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.primary-btn{
+    width:100%;
+    border:0;
+    border-radius:8px;
+    padding:12px;
+    background:#2563eb;
+    color:white;
+    font-weight:700;
+}
+
+.primary-btn:hover{
+    background:#1d4ed8;
+}
+
+.error{
+    color:#dc2626;
+    margin-top:10px;
+    text-align:center;
+}
+
+.app{
+    min-height:100vh;
+}
+
+.topbar{
+    background:#1e3a8a;
+    color:white;
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.topbar h2{
+    margin:0;
+    font-size:20px;
+}
+
+.topbar-actions{
+    display:flex;
+    gap:8px;
+    align-items:center;
+}
+
+.topbar button{
+    border:0;
+    background:#fff;
+    color:#1e3a8a;
+    border-radius:7px;
+    padding:8px 12px;
+    font-weight:600;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    padding:20px;
+}
+
+.tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:20px;
+}
+
+.tab-btn{
+    border:1px solid #cbd5e1;
+    background:#fff;
+    color:#334155;
+    padding:9px 14px;
+    border-radius:8px;
+    font-weight:600;
+}
+
+.tab-btn.active{
+    background:#2563eb;
+    color:#fff;
+    border-color:#2563eb;
+}
+
+.card{
+    background:#fff;
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:18px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+
+.card h3{
+    margin-top:0;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+}
+
+.stat-card{
+    background:#fff;
+    border-radius:12px;
+    padding:18px;
+    box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+
+.stat-title{
+    color:#64748b;
+    font-size:13px;
+}
+
+.stat-value{
+    margin-top:8px;
+    font-size:25px;
+    font-weight:700;
+}
+
+.table-wrap{
+    width:100%;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:700px;
+}
+
+th,
+td{
+    border:1px solid #e5e7eb;
+    padding:9px 10px;
+    text-align:left;
+    font-size:13px;
+}
+
+th{
+    background:#eff6ff;
+    color:#1e3a8a;
+    font-weight:700;
+}
+
+tr:nth-child(even){
+    background:#f8fbff;
+}
+
+.action-btn{
+    border:0;
+    border-radius:6px;
+    padding:6px 9px;
+    font-size:12px;
+    font-weight:600;
+    margin:2px;
+}
+
+.edit-btn{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.delete-btn{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.share-btn{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.copy-btn{
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.download-btn{
+    background:#e0e7ff;
+    color:#3730a3;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+}
+
+.badge-paid{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.badge-partial{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.badge-pending{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+    margin-bottom:14px;
+}
+
+.toolbar select,
+.toolbar input{
+    padding:9px 10px;
+    border:1px solid #cbd5e1;
+    border-radius:7px;
+}
+
+.toolbar button{
+    border:0;
+    border-radius:7px;
+    padding:9px 12px;
+    font-weight:600;
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:1000;
+}
+
+.modal-content{
+    width:100%;
+    max-width:600px;
+    max-height:90vh;
+    overflow:auto;
+    background:white;
+    border-radius:14px;
+    padding:20px;
+}
+
+.modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:15px;
+}
+
+.modal-actions button{
+    border:0;
+    padding:9px 14px;
+    border-radius:7px;
+    font-weight:600;
+}
+
+.secondary-btn{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.success{
+    color:#166534;
+}
+
+.warning{
+    color:#92400e;
+}
+
+.danger{
+    color:#991b1b;
+}
+
+@media(max-width:1000px){
+    .grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:600px){
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .container{
+        padding:12px;
+    }
+
+    .card{
+        padding:13px;
+    }
+}
 </style>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
+
 <body>
-<header><h1>Ashiyana City I Society Management App</h1><div>Kudi Kheda, Dadri</div></header>
-<main>
-<div id="loginPanel" class="login card">
-<h2>Login</h2>
-<input id="loginUser" placeholder="Username / Phone Number" autocomplete="username">
-<input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
-<button onclick="doLogin()">Login</button>
-<button class="secondary" onclick="showReset()">Reset Password</button>
-<div id="loginError" class="err"></div>
+
+<div id="loginPage" class="login-page">
+
+    <div class="login-card">
+
+        <h1>Ashiyana City I</h1>
+
+        <p>Society Management System</p>
+
+        <div class="form-group">
+            <label for="loginUsername">Username / Phone</label>
+            <input
+                id="loginUsername"
+                type="text"
+                autocomplete="username"
+                placeholder="Enter username or phone">
+        </div>
+
+        <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input
+                id="loginPassword"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter password">
+        </div>
+
+        <button
+            id="loginBtn"
+            class="primary-btn">
+            Login
+        </button>
+
+        <div
+            id="loginError"
+            class="error">
+        </div>
+
+    </div>
+
 </div>
-<div id="resetPanel" class="login card hidden">
-<h2>Reset Password</h2>
-<input id="resetPhone" placeholder="Phone Number">
-<input id="resetCurrent" type="password" placeholder="Current Password">
-<input id="resetSecret" placeholder="6-digit Secret Code">
-<input id="resetNew" type="password" minlength="6" maxlength="15" placeholder="New Password (6-15 characters)">
-<button onclick="resetPassword()">Change Password</button>
-<button class="secondary" onclick="showLogin()">Back to Login</button>
-<div id="resetMsg"></div>
+
+
+<div
+    id="app"
+    class="app hidden">
+
+    <div class="topbar">
+
+        <div>
+            <h2>Ashiyana City I Society Management</h2>
+        </div>
+
+        <div class="topbar-actions">
+
+            <span id="loggedUser"></span>
+
+            <button
+                id="logoutBtn">
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="container">
+
+        <div class="tabs">
+
+            <button
+                class="tab-btn active"
+                data-tab="dashboardTab">
+                Dashboard
+            </button>
+
+            <button
+                class="tab-btn"
+                data-tab="membersTab">
+                Members
+            </button>
+
+            <button
+                class="tab-btn"
+                data-tab="paymentsTab">
+                Payment Details
+            </button>
+
+            <button
+                class="tab-btn"
+                data-tab="expensesTab">
+                Expenses
+            </button>
+
+        </div>
+
+
+        <!-- DASHBOARD -->
+
+        <section
+            id="dashboardTab"
+            class="tab-content">
+
+            <div class="grid">
+
+                <div class="stat-card">
+
+                    <div class="stat-title">
+                        Total Flats
+                    </div>
+
+                    <div
+                        id="totalFlats"
+                        class="stat-value">
+                        0
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-title">
+                        Total Collected
+                    </div>
+
+                    <div
+                        id="totalCollected"
+                        class="stat-value">
+                        ₹0
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-title">
+                        Total Expenses
+                    </div>
+
+                    <div
+                        id="totalExpenses"
+                        class="stat-value">
+                        ₹0
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-title">
+                        Current Balance
+                    </div>
+
+                    <div
+                        id="currentBalance"
+                        class="stat-value">
+                        ₹0
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MEMBERS -->
+
+        <section
+            id="membersTab"
+            class="tab-content hidden">
+
+            <div class="card">
+
+                <div class="toolbar">
+
+                    <input
+                        id="memberSearch"
+                        type="text"
+                        placeholder="Search member...">
+
+                    <button
+                        id="addMemberBtn"
+                        class="primary-btn"
+                        style="width:auto;">
+                        Add Member
+                    </button>
+
+                </div>
+
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+                                <th>Flat</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Monthly Contribution</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody
+                            id="membersTableBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PAYMENTS -->
+
+        <section
+            id="paymentsTab"
+            class="tab-content hidden">
+
+            <div class="card">
+
+                <div class="toolbar">
+
+                    <select
+                        id="statusMonth">
+                    </select>
+
+                    <button
+                        id="refreshPaymentsBtn">
+                        Refresh
+                    </button>
+
+                    <button
+                        id="sharePaymentBtn"
+                        class="share-btn">
+                        💬 Share / Copy
+                    </button>
+
+                    <button
+                        id="downloadPaymentBtn"
+                        class="download-btn">
+                        📥 Download Excel
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="paymentSummary"
+                    class="card">
+                </div>
+
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Flat</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Contribution</th>
+                                <th>Paid</th>
+                                <th>Due</th>
+                                <th>Status</th>
+                                <th>Payment Date</th>
+                                <th>Method</th>
+                                <th>Transaction ID</th>
+                                <th>Action</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody
+                            id="paymentStatusBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- EXPENSES -->
+
+        <section
+            id="expensesTab"
+            class="tab-content hidden">
+
+            <div class="card">
+
+                <div class="toolbar">
+
+                    <button
+                        id="addExpenseBtn"
+                        class="primary-btn"
+                        style="width:auto;">
+                        Add Expense
+                    </button>
+
+                    <button
+                        id="downloadExpenseBtn"
+                        class="download-btn">
+                        📥 Download Excel
+                    </button>
+
+                </div>
+
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Paid To</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody
+                            id="expensesTableBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
 </div>
-<div id="app" class="hidden">
-<div id="currentDuesBanner" class="card">Checking current month dues...</div>
-<div class="card top"><div><h2 id="welcome" style="margin:0"></h2><div id="flatWelcome" class="small"></div></div><button onclick="logout()">Logout</button></div>
-<div class="cards"><div class="metric">Total Flats<b id="mFlats">0</b></div><div class="metric">Collected<b id="mCollected">₹0</b></div><div class="metric">Expenses<b id="mExpenses">₹0</b></div><div class="metric">Current Fund<b id="mBalance">₹0</b></div></div>
-<section id="paymentStatusSection"><h2>Payment Status Details</h2><div class="row"><select id="statusMonth" onchange="loadMonthlyStatus()"></select><button type="button" class="excelBtn" onclick="downloadPaymentExcel()">📥 Download Excel</button><button type="button" class="shareBtn" onclick="sharePaymentDetails()">💬 Share / Copy</button></div><div id="paymentSummary"></div><div class="tableWrap"><table class="statusTable"><thead id="statusHead"></thead><tbody id="paymentStatusBody"></tbody></table></div></section>
-<section id="memberManagementSection" class="hidden"><div class="sectionHeader"><h2>Add Member</h2><button id="memberToggleButton" onclick="toggleMemberForm()">➕ Add Member</button></div><div id="memberForm" class="hidden"><div class="grid"><input id="fFlat" placeholder="Flat Number *"><input id="fName" placeholder="Member Name *"><input id="fPhone" placeholder="Phone Number *"><input id="fEmail" type="email" placeholder="Email ID"><input id="fContribution" type="number" min="1" placeholder="Monthly Contribution *"><input id="fPassword" type="password" minlength="6" maxlength="15" placeholder="Password (6-15 chars) *"></div><button class="green" onclick="createMember()">Create Member</button><div id="createMsg"></div></div></section>
-<section id="paymentManagementSection" class="hidden"><div class="sectionHeader"><h2>Member Payment Management</h2><button id="paymentToggleButton" onclick="togglePaymentForm()">➕ Add Payment</button></div><div id="paymentForm" class="hidden"><div class="grid"><select id="pMember" onchange="loadSelectedPayment()"><option value="">Select Member</option></select><input id="pAmount" type="number" min="1" placeholder="Amount *"><label class="fieldLabel">Payment Received Date *<input id="pDate" type="date"></label><label class="fieldLabel">Contribution For Month *<input id="pMonth" type="month" onchange="loadSelectedPayment()"></label><select id="pMethod"><option value="UPI">UPI</option><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select><input id="pTxn" placeholder="Transaction ID"></div><div class="small">Payment status and monthly collection are calculated using <b>Contribution For Month</b>. Payment Received Date is saved for reference only.</div><div id="selectedPaymentInfo" class="card">Select a member and month to view payment details.</div><button class="green" onclick="savePayment()">Save Payment / Mark Done</button></div></section>
-<section id="expenseManagementSection" class="hidden"><div class="sectionHeader"><h2>Manage Society Expenses</h2><button id="expenseToggleButton" onclick="toggleExpenseForm()">➕ Add Expense</button></div><div id="expenseForm" class="hidden"><div class="grid"><input id="eDate" type="date"><input id="eCategory" placeholder="Category *"><input id="eDescription" placeholder="Description"><input id="eAmount" type="number" min="1" placeholder="Amount *"><input id="ePaidTo" placeholder="Paid To"></div><button class="green" onclick="saveExpense()">Save Expense</button></div></section>
-<div id="memberList" class="hidden"></div><div id="expenseList" class="hidden"></div>
-<section><h2>Society Information</h2><button onclick="window.location.href='/members.html'">👥 Click to See Society Members Details</button><button onclick="window.location.href='/expenses.html'">💰 Click to See Society Expenses Details</button></section>
+
+
+<!-- MEMBER MODAL -->
+
+<div
+    id="memberModal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <h3 id="memberModalTitle">
+            Add Member
+        </h3>
+
+        <div class="form-group">
+
+            <label>
+                Flat Number
+            </label>
+
+            <input
+                id="memberFlat"
+                type="text">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Name
+            </label>
+
+            <input
+                id="memberName"
+                type="text">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Phone Number
+            </label>
+
+            <input
+                id="memberPhone"
+                type="text">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Monthly Contribution
+            </label>
+
+            <input
+                id="memberContribution"
+                type="number"
+                min="0">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Password
+            </label>
+
+            <input
+                id="memberPassword"
+                type="password">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Secret Code
+            </label>
+
+            <input
+                id="memberSecretCode"
+                type="text">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                id="cancelMemberBtn"
+                class="secondary-btn">
+                Cancel
+            </button>
+
+            <button
+                id="saveMemberBtn"
+                class="primary-btn"
+                style="width:auto;">
+                Save
+            </button>
+
+        </div>
+
+    </div>
+
 </div>
-</main>
+
+
+<!-- EXPENSE MODAL -->
+
+<div
+    id="expenseModal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <h3 id="expenseModalTitle">
+            Add Expense
+        </h3>
+
+        <div class="form-group">
+
+            <label>
+                Expense Date
+            </label>
+
+            <input
+                id="expenseDate"
+                type="date">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Category
+            </label>
+
+            <input
+                id="expenseCategory"
+                type="text">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="expenseDescription"
+                rows="3">
+            </textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Amount
+            </label>
+
+            <input
+                id="expenseAmount"
+                type="number"
+                min="0">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Paid To
+            </label>
+
+            <input
+                id="expensePaidTo"
+                type="text">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                id="cancelExpenseBtn"
+                class="secondary-btn">
+                Cancel
+            </button>
+
+            <button
+                id="saveExpenseBtn"
+                class="primary-btn"
+                style="width:auto;">
+                Save
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- PAYMENT MODAL -->
+
+<div
+    id="paymentModal"
+    class="modal hidden">
+
+    <div class="modal-content">
+
+        <h3>
+            Record Payment
+        </h3>
+
+        <div class="form-group">
+
+            <label>
+                Member
+            </label>
+
+            <input
+                id="paymentMemberName"
+                type="text"
+                readonly>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Contribution Month
+            </label>
+
+            <input
+                id="paymentMonth"
+                type="month">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Amount
+            </label>
+
+            <input
+                id="paymentAmount"
+                type="number"
+                min="0">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Payment Date
+            </label>
+
+            <input
+                id="paymentDate"
+                type="date">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Payment Method
+            </label>
+
+            <select
+                id="paymentMethod">
+
+                <option value="">
+                    Select
+                </option>
+
+                <option value="UPI">
+                    UPI
+                </option>
+
+                <option value="Cash">
+                    Cash
+                </option>
+
+                <option value="Bank Transfer">
+                    Bank Transfer
+                </option>
+
+                <option value="Cheque">
+                    Cheque
+                </option>
+
+                <option value="Other">
+                    Other
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Transaction ID
+            </label>
+
+            <input
+                id="paymentTransactionId"
+                type="text">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                id="cancelPaymentBtn"
+                class="secondary-btn">
+                Cancel
+            </button>
+
+            <button
+                id="savePaymentBtn"
+                class="primary-btn"
+                style="width:auto;">
+                Save Payment
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <script>
-let sessionUser=null;
-let membersCache=[];
-let expensesCache=[];
-let paymentsCache=[];
-let paymentStatusRows=[];
 
-const $=id=>document.getElementById(id);
-const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const $ = id => document.getElementById(id);
 
-function showReset(){
- $('loginPanel').classList.add('hidden');
- $('resetPanel').classList.remove('hidden');
+
+let currentUser = null;
+
+let currentRole = null;
+
+let members = [];
+
+let expenses = [];
+
+let paymentStatusRows = [];
+
+let editingMemberId = null;
+
+let editingExpenseId = null;
+
+let selectedPaymentMemberId = null;
+
+
+function money(value){
+
+    const n = Number(value || 0);
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style:"currency",
+            currency:"INR",
+            maximumFractionDigits:2
+        }
+    ).format(n);
 }
+
+
+async function api(
+    url,
+    options = {}
+){
+
+    const response =
+        await fetch(
+            url,
+            {
+                credentials:"include",
+                headers:{
+                    "Content-Type":
+                        "application/json",
+                    ...(options.headers || {})
+                },
+                ...options
+            }
+        );
+
+    const text =
+        await response.text();
+
+    let data = null;
+
+    try{
+        data = text ? JSON.parse(text) : null;
+    }
+    catch{
+        data = text;
+    }
+
+    if(!response.ok){
+
+        let message =
+            "Request failed";
+
+        if(
+            data &&
+            typeof data === "object"
+        ){
+
+            message =
+                data.message ||
+                data.error ||
+                message;
+
+        }
+        else if(
+            typeof data === "string" &&
+            data
+        ){
+
+            message = data;
+
+        }
+
+        throw new Error(message);
+    }
+
+    return data;
+}
+
+
 function showLogin(){
- $('resetPanel').classList.add('hidden');
- $('loginPanel').classList.remove('hidden');
+
+    $("loginPage")
+        .classList
+        .remove("hidden");
+
+    $("app")
+        .classList
+        .add("hidden");
 }
 
-async function doLogin(){
- $('loginError').textContent='';
- try{
-  const r=await fetch('/api/auth/login',{
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({
-    username:$('loginUser').value.trim(),
-    password:$('loginPass').value
-   })
-  });
-  const x=await r.json();
-  if(!r.ok){
-   $('loginError').textContent='Invalid credentials';
-   return;
-  }
-  sessionUser=x;
-  openApp();
- }catch(e){
-  $('loginError').textContent='Invalid credentials';
- }
+
+function showApp(){
+
+    $("loginPage")
+        .classList
+        .add("hidden");
+
+    $("app")
+        .classList
+        .remove("hidden");
+
+    $("loggedUser").textContent =
+        currentUser
+        ? `${currentUser} (${currentRole || ""})`
+        : "";
+
 }
 
-async function resetPassword(){
- const body={
-  phone:$('resetPhone').value.trim(),
-  currentPassword:$('resetCurrent').value,
-  secretCode:$('resetSecret').value.trim(),
-  newPassword:$('resetNew').value
- };
- try{
-  const r=await fetch('/api/auth/reset',{
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify(body)
-  });
-  const x=await r.json();
-  $('resetMsg').textContent=r.ok?(x.message||'Password changed successfully'):(x.message||x.error||'Reset failed');
- }catch(e){
-  $('resetMsg').textContent='Reset failed';
- }
+
+async function login(){
+
+    const username =
+        $("loginUsername")
+            .value
+            .trim();
+
+    const password =
+        $("loginPassword")
+            .value;
+
+    $("loginError")
+        .textContent = "";
+
+    if(!username || !password){
+
+        $("loginError")
+            .textContent =
+            "Username and password are required.";
+
+        return;
+    }
+
+
+    try{
+
+        const data =
+            await api(
+                "/api/auth/login",
+                {
+                    method:"POST",
+                    body:JSON.stringify({
+                        username,
+                        password
+                    })
+                }
+            );
+
+        currentUser =
+            data.username ||
+            username;
+
+        currentRole =
+            data.role || "";
+
+        showApp();
+
+        await initializeApp();
+
+    }
+    catch(error){
+
+        $("loginError")
+            .textContent =
+            error.message ||
+            "Login failed.";
+
+    }
 }
 
-async function openApp(){
- $('loginPanel').classList.add('hidden');
- $('resetPanel').classList.add('hidden');
- $('app').classList.remove('hidden');
-
- const r=await fetch('/api/residents');
- membersCache=await r.json();
-
- const me=membersCache.find(
-  x=>String(x.phoneNumber)===String(sessionUser.username)
- );
-
- $('welcome').textContent='Welcome, '+(me?me.memberName:sessionUser.username);
- $('flatWelcome').textContent=me?'Flat: '+me.flatNumber:'';
-
- const staff=
-  sessionUser.role==='ADMIN' ||
-  sessionUser.role==='SECRETARY';
-
- $('memberManagementSection').classList.toggle('hidden',!staff);
- $('paymentManagementSection').classList.toggle('hidden',!staff);
- $('expenseManagementSection').classList.toggle('hidden',!staff);
-
- $('memberForm').classList.add('hidden');
- $('paymentForm').classList.add('hidden');
- $('expenseForm').classList.add('hidden');
-
- $('memberToggleButton').textContent='➕ Add Member';
- $('paymentToggleButton').textContent='➕ Add Payment';
- $('expenseToggleButton').textContent='➕ Add Expense';
-
- await load();
- await loadCurrentMonthDues();
-}
 
 async function logout(){
- await fetch('/api/auth/logout',{method:'POST'});
- location.reload();
-}
 
-async function loadCurrentMonthDues(){
- const start=new Date(2026,4,1); // May 2026
- const now=new Date();
- if(now<start){
-  $('currentDuesBanner').innerHTML='<b>ℹ️ No Dues Applicable</b><br>Society payment system starts from May 2026.';
-  return;
- }
- const month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
- try{
-  const r=await fetch('/api/payments/status?month='+encodeURIComponent(month));
-  if(!r.ok){$('currentDuesBanner').textContent='Unable to load current month dues.';return;}
-  const rows=await r.json();
-  let row=null;
-  if(sessionUser.role==='MEMBER'){
-   row=rows.find(x=>String(x.phoneNumber)===String(sessionUser.username));
-  }
-  if(!row){$('currentDuesBanner').classList.add('hidden');return;}
-  const label=now.toLocaleString('en-IN',{month:'long',year:'numeric'});
-  const expected=Number(row.expectedAmount||0), paid=Number(row.paidAmount||0), due=Math.max(0,expected-paid);
-  if(row.status==='PAID'){
-   $('currentDuesBanner').innerHTML='<strong class="paid">✅ No Dues</strong><br>'+label+'<br>Monthly Contribution: <b>'+money(expected)+'</b><br>Paid: <b>'+money(paid)+'</b>';
-  }else if(row.status==='PARTIAL'){
-   $('currentDuesBanner').innerHTML='<strong class="partial">⚠️ Partial Payment</strong><br>'+label+'<br>Monthly Contribution: <b>'+money(expected)+'</b><br>Paid: <b>'+money(paid)+'</b><br>Remaining Due: <b>'+money(due)+'</b>';
-  }else{
-   $('currentDuesBanner').innerHTML='<strong class="pending">⚠️ Payment Due</strong><br>'+label+'<br>Monthly Contribution: <b>'+money(expected)+'</b><br>Paid: <b>'+money(paid)+'</b><br>Amount Due: <b>'+money(due)+'</b>';
-  }
- }catch(e){$('currentDuesBanner').textContent='Unable to load current month dues.';}
-}
+    try{
 
-function toggleMemberForm(){
- const f=$('memberForm');
- const b=$('memberToggleButton');
- f.classList.toggle('hidden');
- b.textContent=f.classList.contains('hidden')?'➕ Add Member':'➖ Hide Member';
-}
-
-function togglePaymentForm(){
- const f=$('paymentForm');
- const b=$('paymentToggleButton');
- f.classList.toggle('hidden');
- b.textContent=f.classList.contains('hidden')?'➕ Add Payment':'➖ Hide Payment';
-}
-
-function toggleExpenseForm(){
- const f=$('expenseForm');
- const b=$('expenseToggleButton');
- f.classList.toggle('hidden');
- b.textContent=f.classList.contains('hidden')?'➕ Add Expense':'➖ Hide Expense';
-}
-
-function initializeMonths(){
- const now=new Date();
- const options=[];
- // Payment records are available from May 2026 onwards.
- // Advance payments are allowed for at most the next 2 months.
- const start=new Date(2026,4,1);
- const end=new Date(now.getFullYear(),now.getMonth()+2,1);
-
- for(let d=new Date(start.getFullYear(),start.getMonth(),1);d<=end;d=new Date(d.getFullYear(),d.getMonth()+1,1)){
-  const value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  const label=d.toLocaleString('en-IN',{month:'long',year:'numeric'});
-  const selected=d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()?' selected':'';
-  options.push(`<option value="${value}"${selected}>${label}</option>`);
- }
-
- $('pMonth').innerHTML='<option value="">Select Month</option>'+options.join('');
- $('statusMonth').innerHTML=options.join('');
-}
-
-async function load(){
- const [d,rs,es,ps]=await Promise.all([
-  fetch('/api/dashboard').then(x=>x.json()),
-  fetch('/api/residents').then(x=>x.json()),
-  fetch('/api/expenses').then(x=>x.json()),
-  fetch('/api/payments').then(x=>x.json())
- ]);
-
- membersCache=rs;
- expensesCache=es;
- paymentsCache=ps;
-
- $('mFlats').textContent=d.totalFlats;
- $('mCollected').textContent=money(d.totalCollected);
- $('mExpenses').textContent=money(d.totalExpenses);
- $('mBalance').textContent=money(d.currentBalance);
-
- $('pMember').innerHTML=
-  '<option value="">Select Member</option>'+
-  rs.map(x=>`<option value="${x.id}">${x.flatNumber} - ${x.memberName}</option>`).join('');
-
- renderMembers(rs);
- renderExpenses(es);
-
- initializeMonths();
- loadMonthlyStatus();
-}
-
-async function loadMonthlyStatus(){
- const month=$('statusMonth').value;
- if(!month)return;
-
- const r=await fetch('/api/payments/status?month='+encodeURIComponent(month));
- if(!r.ok){
-  paymentStatusRows=[];
-  $('paymentStatusBody').innerHTML='<tr><td>Unable to load payment status</td></tr>';
-  return;
- }
-
- const rows=await r.json();
- paymentStatusRows=rows;
-
- let paid=0,pending=0,partial=0,collected=0,expected=0;
-
- rows.forEach(x=>{
-  expected+=Number(x.expectedAmount||0);
-  collected+=Number(x.paidAmount||0);
-  if(x.status==='PAID')paid++;
-  else if(x.status==='PARTIAL')partial++;
-  else pending++;
- });
-
- $('paymentSummary').innerHTML=`
- <div class="card">
- <b>Total Members:</b> ${rows.length}
- &nbsp; | &nbsp;
- <b>Paid:</b> <span class="paid">${paid}</span>
- &nbsp; | &nbsp;
- <b>Pending:</b> <span class="pending">${pending}</span>
- &nbsp; | &nbsp;
- <b>Partial:</b> <span class="partial">${partial}</span>
- &nbsp; | &nbsp;
- <b>Expected:</b> ${money(expected)}
- &nbsp; | &nbsp;
- <b>Collected:</b> ${money(collected)}
- </div>`;
-
- const staff=
-  sessionUser.role==='ADMIN' ||
-  sessionUser.role==='SECRETARY';
-
- $('statusHead').innerHTML=`
- <tr>
- <th>Member Name</th>
- <th>Phone Number</th>
- <th>Flat</th>
- <th>Month</th>
- <th>Contribution</th>
- <th>Paid</th>
- <th>Payment Date</th>
- <th>Status</th>
- ${staff?'<th>Notification</th>':''}
- ${staff?'<th>Actions</th>':''}
- </tr>`;
-
- $('paymentStatusBody').innerHTML=rows.map(x=>{
-  const statusClass=
-   x.status==='PAID'?'paid':
-   x.status==='PARTIAL'?'partial':'pending';
-
-  const notification =
-   staff && x.status !== 'PAID'
-   ? `<div class="notify">
-        <button type="button"
-                class="shareBtn"
-                data-name="${escapeHtml(x.memberName || '')}"
-                data-phone="${escapeHtml(x.phoneNumber || '')}"
-                data-month="${escapeHtml(month || '')}"
-                data-amount="${Number(x.expectedAmount || 0)}"
-                title="Send notification">
-            📤
-        </button>
-      </div>`
-   : '';
-
-  const canDelete=
-   x.paymentId && (sessionUser.role==='ADMIN' ||
-    (sessionUser.role==='SECRETARY' && secretaryCanDeleteMonth(month)));
-  const actions=canDelete
-   ? `<button class="danger" onclick="deletePayment(${Number(x.paymentId)})">Delete Payment</button>`
-   : '-';
-
-  return `<tr>
-   <td>${escapeHtml(x.memberName)}</td>
-   <td>${escapeHtml(x.phoneNumber)}</td>
-   <td>${escapeHtml(x.flatNumber)}</td>
-   <td>${escapeHtml(month)}</td>
-   <td>${money(x.expectedAmount)}</td>
-   <td>${money(x.paidAmount)}</td>
-   <td>${x.paymentDate||'-'}</td>
-   <td class="${statusClass}">${x.status==='PAID'?'✅ PAID':x.status==='PARTIAL'?'⚠️ PARTIAL':'❌ PENDING'}</td>
-   ${staff?'<td>'+notification+'</td>':''}
-   ${staff?'<td>'+actions+'</td>':''}
-  </tr>`;
- }).join('');
-}
-
-function excelEscape(value){
- return String(value??'')
-  .replaceAll('&','&amp;')
-  .replaceAll('<','&lt;')
-  .replaceAll('>','&gt;')
-  .replaceAll('"','&quot;');
-}
-
-function styleExcelWorksheet(worksheet, rowCount, colCount) {
-    const headerStyle = {
-        font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
-        fill: { fgColor: { rgb: '1F4E78' } },
-        alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
-        border: {
-            top: { style: 'thin', color: { rgb: 'B7C9D6' } },
-            bottom: { style: 'thin', color: { rgb: 'B7C9D6' } },
-            left: { style: 'thin', color: { rgb: 'B7C9D6' } },
-            right: { style: 'thin', color: { rgb: 'B7C9D6' } }
-        }
-    };
-
-    const bodyStyle = {
-        font: { color: { rgb: '000000' }, sz: 10 },
-        alignment: { vertical: 'center', wrapText: true },
-        border: {
-            top: { style: 'thin', color: { rgb: 'D9E2F3' } },
-            bottom: { style: 'thin', color: { rgb: 'D9E2F3' } },
-            left: { style: 'thin', color: { rgb: 'D9E2F3' } },
-            right: { style: 'thin', color: { rgb: 'D9E2F3' } }
-        }
-    };
-
-    for (let c = 0; c < colCount; c++) {
-        const cell = XLSX.utils.encode_cell({ r: 0, c });
-        if (worksheet[cell]) worksheet[cell].s = headerStyle;
-    }
-
-    for (let r = 1; r < rowCount; r++) {
-        for (let c = 0; c < colCount; c++) {
-            const cell = XLSX.utils.encode_cell({ r, c });
-            if (!worksheet[cell]) continue;
-            worksheet[cell].s = {
-                ...bodyStyle,
-                fill: { fgColor: { rgb: r % 2 === 0 ? 'FFFFFF' : 'EAF2F8' } }
-            };
-        }
-    }
-
-    worksheet['!autofilter'] = {
-        ref: XLSX.utils.encode_range({
-            s: { r: 0, c: 0 },
-            e: { r: rowCount - 1, c: colCount - 1 }
-        })
-    };
-}
-
-function downloadPaymentExcel() {
-    const month = $('statusMonth').value;
-
-    if (!month) {
-        alert('Please select a month first');
-        return;
-    }
-
-    if (!paymentStatusRows.length) {
-        alert('No payment status data available for this month');
-        return;
-    }
-
-    const rows = paymentStatusRows.map(x => ({
-        'Member Name': x.memberName || '',
-        'Phone Number': x.phoneNumber || '',
-        'Email': x.email || '',
-        'Flat': x.flatNumber || '',
-        'Month': month,
-        'Contribution': Number(x.expectedAmount || 0),
-        'Paid': Number(x.paidAmount || 0),
-        'Payment Date': x.paymentDate || '',
-        'Payment Method': x.paymentMethod || '',
-        'Transaction ID': x.transactionId || '',
-        'Status': x.status || ''
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Payment Status');
-
-    worksheet['!cols'] = [
-        { wch: 22 }, { wch: 15 }, { wch: 30 }, { wch: 12 },
-        { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 18 },
-        { wch: 20 }, { wch: 22 }, { wch: 15 }
-    ];
-
-    styleExcelWorksheet(worksheet, rows.length + 1, 11);
-
-    // Highlight payment status cells for quick reading.
-    const statusCol = 10;
-    rows.forEach((row, i) => {
-        const cell = XLSX.utils.encode_cell({ r: i + 1, c: statusCol });
-        if (!worksheet[cell]) return;
-
-        const status = String(row.Status || '').toUpperCase();
-        let fill = 'EAF2F8';
-        let fontColor = '1F1F1F';
-
-        if (status === 'PAID') {
-            fill = 'D9EAD3';
-            fontColor = '274E13';
-        } else if (status === 'PARTIAL') {
-            fill = 'FFF2CC';
-            fontColor = '7F6000';
-        } else if (status === 'PENDING') {
-            fill = 'FCE4D6';
-            fontColor = '9C0006';
-        }
-
-        worksheet[cell].s = {
-            font: { bold: true, color: { rgb: fontColor } },
-            fill: { fgColor: { rgb: fill } },
-            alignment: { horizontal: 'center', vertical: 'center' },
-            border: {
-                top: { style: 'thin', color: { rgb: 'B7C9D6' } },
-                bottom: { style: 'thin', color: { rgb: 'B7C9D6' } },
-                left: { style: 'thin', color: { rgb: 'B7C9D6' } },
-                right: { style: 'thin', color: { rgb: 'B7C9D6' } }
+        await api(
+            "/api/auth/logout",
+            {
+                method:"POST"
             }
-        };
-    });
+        );
 
-    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+    }
+    catch(error){
 
-    XLSX.writeFile(workbook, 'payment-status-' + month + '.xlsx');
-}
+        console.log(error);
 
-function buildPaymentShareText(month){
- let paid=0,pending=0,partial=0,collected=0,expected=0;
- const lines=paymentStatusRows
-  .slice()
-  .sort((a,b)=>String(a.flatNumber||'').localeCompare(String(b.flatNumber||''),'en',{numeric:true}))
-  .map((x,i)=>{
-   expected+=Number(x.expectedAmount||0);
-   collected+=Number(x.paidAmount||0);
-   if(x.status==='PAID')paid++;
-   else if(x.status==='PARTIAL')partial++;
-   else pending++;
-   const due=Math.max(0,Number(x.expectedAmount||0)-Number(x.paidAmount||0));
-   return (i+1)+'. Flat '+ (x.flatNumber||'-')
-    +' | '+(x.memberName||'-')
-    +' | '+(x.status||'PENDING')
-    +' | Paid: '+money(x.paidAmount)
-    +(due>0?' | Due: '+money(due):'')
-    +(x.paymentDate?' | Date: '+x.paymentDate:'');
-  });
-
- return [
-  'Ashiyana City I Society - Payment Status',
-  'Month: '+month,
-  '',
-  'Summary',
-  'Total Members: '+paymentStatusRows.length,
-  'Paid: '+paid+' | Pending: '+pending+' | Partial: '+partial,
-  'Expected: '+money(expected)+' | Collected: '+money(collected),
-  '',
-  'Member Details',
-  ...lines
- ].join('\n');
-}
-
-async function copyTextToClipboard(text){
- if(navigator.clipboard&&window.isSecureContext){
-  await navigator.clipboard.writeText(text);
-  return true;
- }
- const area=document.createElement('textarea');
- area.value=text;
- area.setAttribute('readonly','');
- area.style.position='fixed';
- area.style.left='-9999px';
- document.body.appendChild(area);
- area.select();
- const ok=document.execCommand('copy');
- area.remove();
- return ok;
-}
-
-async function sharePaymentDetails(){
- const month=$('statusMonth').value;
- if(!month){
-  alert('Please select a month first');
-  return;
- }
- if(!paymentStatusRows.length){
-  alert('No payment status data available for this month');
-  return;
- }
-
- const text=buildPaymentShareText(month);
- let copied=false;
- try{
-  copied=await copyTextToClipboard(text);
- }catch(e){
-  copied=false;
- }
-
- if(navigator.share){
-  try{
-   await navigator.share({
-    title:'Payment Status - '+month,
-    text:text
-   });
-   if(copied)alert('Payment details copied. You can also paste them in WhatsApp or Messages.');
-   return;
-  }catch(e){
-   if(e&&e.name==='AbortError')return;
-  }
- }
-
- window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
- alert(copied
-  ?'Payment details copied to clipboard and WhatsApp opened. Paste if needed, then send.'
-  :'WhatsApp opened with payment details. If text is missing, copy failed — try again from a secure browser.');
-}
-
-function secretaryCanDeleteMonth(month){
- const today=new Date();
- const current=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
- const previousDate=new Date(today.getFullYear(),today.getMonth()-1,1);
- const previous=previousDate.getFullYear()+'-'+String(previousDate.getMonth()+1).padStart(2,'0');
- return month===current||month===previous;
-}
-
-async function deletePayment(id){
- if(!confirm('Delete this payment record? This cannot be undone.')) return;
- const r=await fetch('/api/payments/'+id,{method:'DELETE'});
- const x=await r.json();
- if(!r.ok){
-  alert(x.error||x.message||'Could not delete payment');
-  return;
- }
- await load();
-}
-
-function escapeHtml(value){
- return String(value??'')
-  .replaceAll('&','&amp;')
-  .replaceAll('<','&lt;')
-  .replaceAll('>','&gt;')
-  .replaceAll('"','&quot;')
-  .replaceAll("'","&#039;");
-}
-
-async function loadSelectedPayment(){
- const memberId=$('pMember').value;
- const month=$('pMonth').value;
- const info=$('selectedPaymentInfo');
-
- if(!memberId||!month){
-  info.innerHTML='Select a member and month to view payment details.';
-  return;
- }
-
- const member=membersCache.find(x=>Number(x.id)===Number(memberId));
- if(!member){
-  info.innerHTML='Member not found.';
-  return;
- }
-
- const payment=paymentsCache
-  .filter(p=>Number(p.residentId)===Number(memberId)
-    &&String(p.contributionMonth)===String(month))
-  .sort((a,b)=>Number(b.id)-Number(a.id))[0];
-
- if(!payment){
-  info.innerHTML=`
-   <b>${escapeHtml(member.memberName)}</b> — ${escapeHtml(member.flatNumber)}
-   <br>Month: ${escapeHtml(month)}
-   <br>Monthly Contribution: ${money(member.expectedAmount)}
-   <br>Paid Amount: ₹0
-   <br><span class="pending">❌ PENDING</span>`;
-  $('pAmount').value=member.expectedAmount||'';
-  return;
- }
-
- info.innerHTML=`
-  <b>${escapeHtml(member.memberName)}</b> — ${escapeHtml(member.flatNumber)}
-  <br>Month: ${escapeHtml(month)}
-  <br>Monthly Contribution: ${money(member.expectedAmount)}
-  <br>Paid Amount: ${money(payment.amount)}
-  <br>Payment Date: ${payment.paymentDate||'-'}
-  <br>Payment Method: ${escapeHtml(payment.paymentMethod||'-')}
-  <br>Transaction ID: ${escapeHtml(payment.transactionId||'-')}
-  <br><span class="${payment.status==='PAID'?'paid':'pending'}">${payment.status==='PAID'?'✅ PAID':'❌ PENDING'}</span>`;
-
- $('pAmount').value=payment.amount||member.expectedAmount||'';
- $('pDate').value=payment.paymentDate||'';
- $('pMethod').value=payment.paymentMethod||'UPI';
- $('pTxn').value=payment.transactionId||'';
-}
-
-async function savePayment(){
- const memberId=$('pMember').value;
- const month=$('pMonth').value;
-
- if(!memberId||!month){
-  alert('Please select member and month');
-  return;
- }
-
- const amount=Number($('pAmount').value);
- const date=$('pDate').value;
-
- if(!amount||amount<=0){
-  alert('Payment amount is required');
-  return;
- }
-
- if(!date){
-  alert('Payment date is required');
-  return;
- }
-
- const body={
-  amount:amount,
-  paymentDate:date,
-  contributionMonth:month,
-  paymentMethod:$('pMethod').value,
-  transactionId:$('pTxn').value
- };
-
- const r=await fetch('/api/payments/resident/'+memberId,{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(body)
- });
-
- const x=await r.json();
-
- if(!r.ok){
-  alert(x.error||x.message||'Payment failed');
-  return;
- }
-
- alert('Payment saved / marked as done');
-
- // Clear payment entry fields after successful save.
- $('pAmount').value='';
- $('pDate').value='';
- $('pTxn').value='';
- $('paymentForm').classList.add('hidden');
- $('paymentToggleButton').textContent='➕ Add Payment';
-
- await load();
- $('pMember').value=memberId;
- $('pMonth').value=month;
- await loadSelectedPayment();
-}
-
-function renderMembers(rs){
- const admin=sessionUser.role==='ADMIN';
- const sec=sessionUser.role==='SECRETARY';
-
- $('memberList').innerHTML=rs.map(x=>{
-  const adminBtns=admin
-   ? `<button onclick="adminEdit(${x.id})">Edit</button>
-      <button class="danger" onclick="deleteMember(${x.id})">Delete</button>
-      <button onclick="showCred('${x.memberId}','${x.secretCode}')">Credentials</button>`
-   : '';
-
-  const secBtn=sec
-   ? `<button onclick="secretaryEdit(${x.id})">Edit Member</button>`
-   : '';
-
-  return `<div class="member">
-   <h3>${escapeHtml(x.flatNumber)} — ${escapeHtml(x.memberName)}</h3>
-   <div>📱 ${escapeHtml(x.phoneNumber)} ${x.email?' · ✉️ '+escapeHtml(x.email):''}</div>
-   <p>Monthly Contribution: ${money(x.expectedAmount)}</p>
-   <div class="actions">${adminBtns}${secBtn}</div>
-  </div>`;
- }).join('');
-}
-
-function renderExpenses(es){
- const admin=sessionUser.role==='ADMIN';
- const sec=sessionUser.role==='SECRETARY';
-
- $('expenseList').innerHTML=
-  es.slice().sort((a,b)=>Number(b.id)-Number(a.id))
-  .map(x=>`<div class="member">
-   <b>${escapeHtml(x.expenseDate)} — ${escapeHtml(x.category)}</b><br>
-   ${escapeHtml(x.description||'')}<br>
-   ${money(x.amount)}${x.paidTo?' — '+escapeHtml(x.paidTo):''}
-   ${(admin||sec)?`<button onclick="editExpense(${x.id})">Edit</button>`:''}
-   ${(admin||sec)?`<button class="danger" onclick="deleteExpense(${x.id})">Delete</button>`:''}
-  </div>`).join('');
-}
-
-async function createMember(){
- const password=$('fPassword').value;
- const fields=[
-  ['Flat Number',$('fFlat').value.trim()],
-  ['Member Name',$('fName').value.trim()],
-  ['Phone Number',$('fPhone').value.trim()],
-  ['Password',password],
-  ['Monthly Contribution',$('fContribution').value]
- ];
- const missing=fields.filter(x=>!x[1]).map(x=>x[0]);
-
- if(missing.length){
-  $('createMsg').textContent='Required: '+missing.join(', ');
-  return;
- }
-
- if(password.length<6||password.length>15){
-  $('createMsg').textContent='Password must be between 6 and 15 characters';
-  return;
- }
-
- const body={
-  flatNumber:$('fFlat').value.trim(),
-  memberName:$('fName').value.trim(),
-  phoneNumber:$('fPhone').value.trim(),
-  email:$('fEmail').value.trim(),
-  expectedAmount:Number($('fContribution').value),
-  password:password
- };
-
- const r=await fetch('/api/residents',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(body)
- });
-
- const x=await r.json();
-
- if(!r.ok){
-  $('createMsg').textContent=x.error||x.message||'Could not create member';
-  return;
- }
-
- $('createMsg').innerHTML=
-  `Created: ${escapeHtml(x.memberName)}.
-   Member ID: <b>${escapeHtml(x.memberId)}</b>,
-   Secret Code: <b>${escapeHtml(x.secretCode)}</b>`;
-
- // Clear member form only after successful creation.
- $('fFlat').value='';
- $('fName').value='';
- $('fPhone').value='';
- $('fEmail').value='';
- $('fContribution').value='';
- $('fPassword').value='';
- $('memberForm').classList.add('hidden');
- $('memberToggleButton').textContent='➕ Add Member';
-
- await load();
-}
-
-async function saveExpense(){
- const body={
-  expenseDate:$('eDate').value,
-  category:$('eCategory').value.trim(),
-  description:$('eDescription').value.trim(),
-  amount:Number($('eAmount').value),
-  paidTo:$('ePaidTo').value.trim()
- };
-
- if(!body.expenseDate||!body.category||!body.amount||body.amount<=0){
-  alert('Expense date, category and amount are required');
-  return;
- }
-
- const r=await fetch('/api/expenses',{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(body)
- });
-
- const x=await r.json();
-
- if(!r.ok){
-  alert(x.error||x.message||'Expense failed');
-  return;
- }
-
- alert('Expense added successfully');
-
- $('eDate').value='';
- $('eCategory').value='';
- $('eDescription').value='';
- $('eAmount').value='';
- $('ePaidTo').value='';
- $('expenseForm').classList.add('hidden');
- $('expenseToggleButton').textContent='➕ Add Expense';
-
- await load();
-}
-
-async function deleteMember(id){
- if(!confirm('Delete this member?'))return;
- const r=await fetch('/api/residents/'+id,{method:'DELETE'});
- if(!r.ok)alert('Only Admin can delete');
- await load();
-}
-
-async function deleteExpense(id){
- if(!confirm('Delete this expense?'))return;
- const r=await fetch('/api/expenses/'+id,{method:'DELETE'});
- const x=await r.json();
- if(!r.ok){alert(x.error||x.message||'Could not delete expense');return;}
- await load();
-}
-
-function showCred(id,secret){
- alert('Member ID: '+id+'\\nSecret Code: '+secret);
-}
-
-async function secretaryEdit(id){
- const x=membersCache.find(a=>a.id===id);
- const flat=prompt('Flat Number',x.flatNumber);
- if(flat===null)return;
- const n=prompt('Member Name',x.memberName);
- if(n===null)return;
- const phone=prompt('Phone Number',x.phoneNumber);
- if(phone===null)return;
- const e=prompt('Email',x.email||'');
- if(e===null)return;
- const c=prompt('Monthly Contribution',x.expectedAmount);
- if(c===null)return;
-
- const body={
-  flatNumber:flat,
-  memberName:n,
-  phoneNumber:phone,
-  email:e,
-  expectedAmount:Number(c)
- };
-
- const r=await fetch('/api/residents/'+id,{
-  method:'PUT',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(body)
- });
-
- const z=await r.json();
- if(!r.ok)alert(z.error||z.message||'Update failed');
- await load();
-}
-
-async function adminEdit(id){
- const x=membersCache.find(a=>a.id===id);
-
- const flat=prompt('Flat Number',x.flatNumber);
- if(flat===null)return;
- const n=prompt('Member Name',x.memberName);
- if(n===null)return;
- const phone=prompt('Phone Number',x.phoneNumber);
- if(phone===null)return;
- const email=prompt('Email',x.email||'');
- if(email===null)return;
- const c=prompt('Monthly Contribution',x.expectedAmount);
- if(c===null)return;
-
- const body={
-  flatNumber:flat,
-  memberName:n,
-  phoneNumber:phone,
-  email:email,
-  expectedAmount:Number(c)
- };
-
- const r=await fetch('/api/residents/'+id,{
-  method:'PUT',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(body)
- });
-
- const z=await r.json();
- if(!r.ok)alert(z.error||z.message||'Update failed');
- await load();
-}
-
-async function editExpense(id){
- const x=expensesCache.find(a=>Number(a.id)===Number(id));
- const amt=prompt('Amount',x.amount);
- if(amt===null)return;
- const desc=prompt('Description',x.description||'');
- if(desc===null)return;
-
- const body={
-  expenseDate:x.expenseDate,
-  category:x.category,
-  description:desc,
-  amount:Number(amt),
-  paidTo:x.paidTo||''
- };
-
- const r=await fetch('/api/expenses/'+id,{
-  method:'PUT',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify(body)
- });
-
- const z=await r.json();
- if(!r.ok)alert(z.error||z.message||'Update failed');
- await load();
-}
-
-function openWhatsApp(name, phone, month, amount) {
-    let clean = String(phone || '').replace(/\D/g, '');
-
-    if (!clean) {
-        alert('Phone number is not available for this member.');
-        return;
     }
 
-    if (clean.length === 10) {
-        clean = '91' + clean;
-    }
+    currentUser = null;
 
-    const message =
-        `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
+    currentRole = null;
 
-    const whatsappUrl =
-        'https://wa.me/' + clean + '?text=' +
-        encodeURIComponent(message);
+    showLogin();
 
-    const opened = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-    if (!opened) window.location.href = whatsappUrl;
 }
 
-function openEmail(name, email, month, amount) {
-    if (!email || !email.trim()) {
-        alert('Email address is not available for this member.');
-        return;
+
+function setupTabs(){
+
+    document
+        .querySelectorAll(".tab-btn")
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    async function(){
+
+                        document
+                            .querySelectorAll(".tab-btn")
+                            .forEach(
+                                b =>
+                                b.classList
+                                .remove("active")
+                            );
+
+                        document
+                            .querySelectorAll(".tab-content")
+                            .forEach(
+                                section =>
+                                section.classList
+                                .add("hidden")
+                            );
+
+                        this.classList
+                            .add("active");
+
+                        const target =
+                            $(this.dataset.tab);
+
+                        target.classList
+                            .remove("hidden");
+
+
+                        if(
+                            this.dataset.tab ===
+                            "dashboardTab"
+                        ){
+
+                            await loadDashboard();
+
+                        }
+
+                        if(
+                            this.dataset.tab ===
+                            "membersTab"
+                        ){
+
+                            await loadMembers();
+
+                        }
+
+                        if(
+                            this.dataset.tab ===
+                            "paymentsTab"
+                        ){
+
+                            await loadPaymentStatus();
+
+                        }
+
+                        if(
+                            this.dataset.tab ===
+                            "expensesTab"
+                        ){
+
+                            await loadExpenses();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+function generateMonths(){
+
+    const select =
+        $("statusMonth");
+
+    select.innerHTML = "";
+
+    const start =
+        new Date(2026,4,1);
+
+    const now =
+        new Date();
+
+    const end =
+        new Date(
+            now.getFullYear(),
+            now.getMonth() + 2,
+            1
+        );
+
+    let current =
+        new Date(start);
+
+    while(current <= end){
+
+        const year =
+            current.getFullYear();
+
+        const month =
+            String(
+                current.getMonth() + 1
+            ).padStart(2,"0");
+
+        const value =
+            `${year}-${month}`;
+
+        const option =
+            document.createElement("option");
+
+        option.value = value;
+
+        option.textContent =
+            current.toLocaleString(
+                "en-IN",
+                {
+                    month:"long",
+                    year:"numeric"
+                }
+            );
+
+        select.appendChild(option);
+
+        current.setMonth(
+            current.getMonth() + 1
+        );
+
     }
 
-    const subject = 'Society Payment Pending - ' + month;
+
+    const currentMonth =
+        `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2,"0")}`;
+
+    if(
+        [
+            ...select.options
+        ].some(
+            option =>
+            option.value === currentMonth
+        )
+    ){
+
+        select.value =
+            currentMonth;
+
+    }
+
+}
+
+
+async function loadDashboard(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/dashboard"
+            );
+
+        $("totalFlats")
+            .textContent =
+            data.totalFlats || 0;
+
+        $("totalCollected")
+            .textContent =
+            money(
+                data.totalCollected
+            );
+
+        $("totalExpenses")
+            .textContent =
+            money(
+                data.totalExpenses
+            );
+
+        $("currentBalance")
+            .textContent =
+            money(
+                data.currentBalance
+            );
+
+    }
+    catch(error){
+
+        console.error(
+            "Dashboard error:",
+            error
+        );
+
+    }
+
+}
+
+
+async function loadMembers(){
+
+    try{
+
+        members =
+            await api(
+                "/api/residents"
+            );
+
+        if(
+            !Array.isArray(members)
+        ){
+
+            members = [];
+
+        }
+
+        renderMembers();
+
+    }
+    catch(error){
+
+        console.error(
+            "Members error:",
+            error
+        );
+
+    }
+
+}
+
+
+function renderMembers(){
 
     const body =
-        `Dear ${name},\n\n` +
-        `Your society maintenance payment of ${money(amount)} for ${month} is currently pending.\n\n` +
-        `Please make the payment at your earliest convenience.\n\n` +
-        `Thank you,\n` +
-        `Ashiyana City I Society Management\n` +
-        `Kudi Kheda, Dadri`;
+        $("membersTableBody");
 
-    const gmailUrl =
-        'https://mail.google.com/mail/?view=cm&fs=1' +
-        '&to=' + encodeURIComponent(email) +
-        '&su=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(body);
+    body.innerHTML = "";
 
-    const opened = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-    if (!opened) window.location.href = gmailUrl;
+    const search =
+        $("memberSearch")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    members
+        .filter(
+            member => {
+
+                if(!search){
+                    return true;
+                }
+
+                return [
+                    member.name,
+                    member.flatNumber,
+                    member.phoneNumber
+                ]
+                .join(" ")
+                .toLowerCase()
+                .includes(search);
+
+            }
+        )
+        .forEach(
+            member => {
+
+                const row =
+                    document.createElement("tr");
+
+                row.innerHTML = `
+
+                    <td>${member.id ?? "-"}</td>
+
+                    <td>${escapeHtml(
+                        member.flatNumber ?? "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        member.name ?? "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        member.phoneNumber ?? "-"
+                    )}</td>
+
+                    <td>${money(
+                        member.monthlyContribution
+                    )}</td>
+
+                    <td>
+
+                        <button
+                            class="action-btn edit-btn"
+                            onclick="editMember(${member.id})">
+                            Edit
+                        </button>
+
+                        <button
+                            class="action-btn delete-btn"
+                            onclick="deleteMember(${member.id})">
+                            Delete
+                        </button>
+
+                    </td>
+
+                `;
+
+                body.appendChild(row);
+
+            }
+        );
+
 }
 
 
-async function shareNotification(name, phone, month, amount) {
-    const message =
-        `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
+function escapeHtml(value){
 
-    const shareData = {
-        title: 'Society Payment Pending',
-        text: phone ? `${message}\n\nMember Phone: ${phone}` : message
+    return String(value ?? "")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+async function saveMember(){
+
+    const payload = {
+
+        flatNumber:
+            $("memberFlat").value.trim(),
+
+        name:
+            $("memberName").value.trim(),
+
+        phoneNumber:
+            $("memberPhone").value.trim(),
+
+        monthlyContribution:
+            Number(
+                $("memberContribution").value || 0
+            ),
+
+        password:
+            $("memberPassword").value,
+
+        secretCode:
+            $("memberSecretCode").value.trim()
+
     };
 
-    if (navigator.share) {
-        try {
-            await navigator.share(shareData);
-        } catch (e) {
-            // User cancelled the share sheet.
-        }
+
+    if(
+        !payload.flatNumber ||
+        !payload.name ||
+        !payload.phoneNumber
+    ){
+
+        alert(
+            "Flat number, name and phone number are required."
+        );
+
         return;
     }
 
-    try {
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(shareData.text);
-        } else {
-            const area = document.createElement('textarea');
-            area.value = shareData.text;
-            area.style.position = 'fixed';
-            area.style.left = '-9999px';
-            document.body.appendChild(area);
-            area.focus();
-            area.select();
-            document.execCommand('copy');
-            area.remove();
+
+    try{
+
+        if(editingMemberId){
+
+            await api(
+                `/api/residents/${editingMemberId}`,
+                {
+                    method:"PUT",
+                    body:JSON.stringify(payload)
+                }
+            );
+
         }
-        alert('Notification text copied. You can paste it into WhatsApp, Gmail, Messages, Telegram, or another app.');
-    } catch (e) {
-        alert('Unable to share or copy the notification text.');
+        else{
+
+            await api(
+                "/api/residents",
+                {
+                    method:"POST",
+                    body:JSON.stringify(payload)
+                }
+            );
+
+        }
+
+        closeMemberModal();
+
+        await loadMembers();
+
+        await loadDashboard();
+
     }
+    catch(error){
+
+        alert(
+            error.message ||
+            "Unable to save member."
+        );
+
+    }
+
 }
 
-document.addEventListener('click', function(event) {
-    const button = event.target.closest('.shareBtn');
-    if (!button) return;
 
-    shareNotification(
-        button.dataset.name || '',
-        button.dataset.phone || '',
-        button.dataset.month || '',
-        Number(button.dataset.amount || 0)
+function openMemberModal(member = null){
+
+    editingMemberId =
+        member
+        ? member.id
+        : null;
+
+    $("memberModalTitle")
+        .textContent =
+        member
+        ? "Edit Member"
+        : "Add Member";
+
+    $("memberFlat").value =
+        member?.flatNumber || "";
+
+    $("memberName").value =
+        member?.name || "";
+
+    $("memberPhone").value =
+        member?.phoneNumber || "";
+
+    $("memberContribution").value =
+        member?.monthlyContribution ?? "";
+
+    $("memberPassword").value = "";
+
+    $("memberSecretCode").value =
+        member?.secretCode || "";
+
+    $("memberModal")
+        .classList
+        .remove("hidden");
+
+}
+
+
+function closeMemberModal(){
+
+    $("memberModal")
+        .classList
+        .add("hidden");
+
+    editingMemberId = null;
+
+}
+
+
+function editMember(id){
+
+    const member =
+        members.find(
+            x => Number(x.id) === Number(id)
+        );
+
+    if(member){
+
+        openMemberModal(member);
+
+    }
+
+}
+
+
+async function deleteMember(id){
+
+    if(
+        !confirm(
+            "Are you sure you want to delete this member?"
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        await api(
+            `/api/residents/${id}`,
+            {
+                method:"DELETE"
+            }
+        );
+
+        await loadMembers();
+
+        await loadDashboard();
+
+    }
+    catch(error){
+
+        alert(
+            error.message ||
+            "Unable to delete member."
+        );
+
+    }
+
+}
+
+
+async function loadPaymentStatus(){
+
+    const month =
+        $("statusMonth").value;
+
+    if(!month){
+        return;
+    }
+
+
+    try{
+
+        const data =
+            await api(
+                `/api/payments/status?month=${encodeURIComponent(month)}`
+            );
+
+        paymentStatusRows =
+            Array.isArray(data)
+            ? data
+            : [];
+
+        renderPaymentStatus();
+
+    }
+    catch(error){
+
+        console.error(
+            "Payment status error:",
+            error
+        );
+
+        paymentStatusRows = [];
+
+        renderPaymentStatus();
+
+    }
+
+}
+
+
+function renderPaymentStatus(){
+
+    const body =
+        $("paymentStatusBody");
+
+    body.innerHTML = "";
+
+
+    let expected = 0;
+
+    let collected = 0;
+
+    let paidCount = 0;
+
+    let partialCount = 0;
+
+    let pendingCount = 0;
+
+
+    paymentStatusRows
+        .forEach(
+            x => {
+
+                expected +=
+                    Number(
+                        x.expectedAmount || 0
+                    );
+
+                collected +=
+                    Number(
+                        x.paidAmount || 0
+                    );
+
+                if(x.status === "PAID"){
+                    paidCount++;
+                }
+                else if(
+                    x.status === "PARTIAL"
+                ){
+                    partialCount++;
+                }
+                else{
+                    pendingCount++;
+                }
+
+            }
+        );
+
+
+    const due =
+        Math.max(
+            0,
+            expected - collected
+        );
+
+
+    $("paymentSummary")
+        .innerHTML = `
+
+            <strong>
+                Total Members:
+            </strong>
+            ${paymentStatusRows.length}
+            &nbsp;&nbsp;
+
+            <strong>
+                Expected:
+            </strong>
+            ${money(expected)}
+            &nbsp;&nbsp;
+
+            <strong>
+                Collected:
+            </strong>
+            ${money(collected)}
+            &nbsp;&nbsp;
+
+            <strong>
+                Due:
+            </strong>
+            ${money(due)}
+            &nbsp;&nbsp;
+
+            <strong>
+                Paid:
+            </strong>
+            ${paidCount}
+            &nbsp;&nbsp;
+
+            <strong>
+                Partial:
+            </strong>
+            ${partialCount}
+            &nbsp;&nbsp;
+
+            <strong>
+                Pending:
+            </strong>
+            ${pendingCount}
+
+        `;
+
+
+    paymentStatusRows
+        .forEach(
+            x => {
+
+                const expectedAmount =
+                    Number(
+                        x.expectedAmount || 0
+                    );
+
+                const paidAmount =
+                    Number(
+                        x.paidAmount || 0
+                    );
+
+                const memberDue =
+                    Math.max(
+                        0,
+                        expectedAmount -
+                        paidAmount
+                    );
+
+
+                const status =
+                    x.status || "PENDING";
+
+
+                const statusClass =
+                    status === "PAID"
+                    ? "badge-paid"
+                    : status === "PARTIAL"
+                    ? "badge-partial"
+                    : "badge-pending";
+
+
+                const row =
+                    document.createElement("tr");
+
+
+                row.innerHTML = `
+
+                    <td>${escapeHtml(
+                        x.flatNumber || "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.memberName || "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.phoneNumber || "-"
+                    )}</td>
+
+                    <td>${money(
+                        expectedAmount
+                    )}</td>
+
+                    <td>${money(
+                        paidAmount
+                    )}</td>
+
+                    <td>${money(
+                        memberDue
+                    )}</td>
+
+                    <td>
+                        <span class="badge ${statusClass}">
+                            ${escapeHtml(status)}
+                        </span>
+                    </td>
+
+                    <td>${escapeHtml(
+                        x.paymentDate || "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.paymentMethod || "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.transactionId || "-"
+                    )}</td>
+
+                    <td>
+
+                        ${
+                            status !== "PAID"
+                            ? `
+                                <button
+                                    class="action-btn share-btn"
+                                    onclick="openPaymentModal(${x.memberId || x.id})">
+                                    Add Payment
+                                </button>
+                              `
+                            : ""
+                        }
+
+                    </td>
+
+                `;
+
+                body.appendChild(row);
+
+            }
+        );
+
+}
+
+
+async function openPaymentModal(memberId){
+
+    const member =
+        members.find(
+            x =>
+            Number(x.id) ===
+            Number(memberId)
+        );
+
+
+    if(!member){
+
+        try{
+
+            const fresh =
+                await api(
+                    "/api/residents"
+                );
+
+            members =
+                Array.isArray(fresh)
+                ? fresh
+                : [];
+
+        }
+        catch(error){
+
+            alert(
+                "Unable to load member."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    const selected =
+        members.find(
+            x =>
+            Number(x.id) ===
+            Number(memberId)
+        );
+
+
+    if(!selected){
+
+        alert(
+            "Member not found."
+        );
+
+        return;
+    }
+
+
+    selectedPaymentMemberId =
+        selected.id;
+
+
+    $("paymentMemberName").value =
+        `${selected.name || "-"} (${selected.flatNumber || "-"})`;
+
+    $("paymentMonth").value =
+        $("statusMonth").value;
+
+    $("paymentAmount").value =
+        selected.monthlyContribution || "";
+
+    $("paymentDate").value =
+        new Date()
+        .toISOString()
+        .slice(0,10);
+
+    $("paymentMethod").value = "";
+
+    $("paymentTransactionId").value = "";
+
+
+    $("paymentModal")
+        .classList
+        .remove("hidden");
+
+}
+
+
+function closePaymentModal(){
+
+    $("paymentModal")
+        .classList
+        .add("hidden");
+
+    selectedPaymentMemberId = null;
+
+}
+
+
+async function savePayment(){
+
+    if(!selectedPaymentMemberId){
+
+        alert(
+            "Please select a member."
+        );
+
+        return;
+    }
+
+
+    const payload = {
+
+        residentId:
+            Number(
+                selectedPaymentMemberId
+            ),
+
+        amount:
+            Number(
+                $("paymentAmount").value || 0
+            ),
+
+        paymentDate:
+            $("paymentDate").value,
+
+        paymentMethod:
+            $("paymentMethod").value,
+
+        transactionId:
+            $("paymentTransactionId").value.trim(),
+
+        contributionMonth:
+            $("paymentMonth").value
+
+    };
+
+
+    if(
+        !payload.amount ||
+        payload.amount <= 0
+    ){
+
+        alert(
+            "Please enter a valid payment amount."
+        );
+
+        return;
+    }
+
+
+    if(!payload.contributionMonth){
+
+        alert(
+            "Please select contribution month."
+        );
+
+        return;
+    }
+
+
+    try{
+
+        await api(
+            "/api/payments",
+            {
+                method:"POST",
+                body:JSON.stringify(payload)
+            }
+        );
+
+        closePaymentModal();
+
+        await loadPaymentStatus();
+
+        await loadDashboard();
+
+    }
+    catch(error){
+
+        alert(
+            error.message ||
+            "Unable to save payment."
+        );
+
+    }
+
+}
+
+
+async function loadExpenses(){
+
+    try{
+
+        expenses =
+            await api(
+                "/api/expenses"
+            );
+
+        if(
+            !Array.isArray(expenses)
+        ){
+
+            expenses = [];
+
+        }
+
+        renderExpenses();
+
+    }
+    catch(error){
+
+        console.error(
+            "Expenses error:",
+            error
+        );
+
+    }
+
+}
+
+
+function renderExpenses(){
+
+    const body =
+        $("expensesTableBody");
+
+    body.innerHTML = "";
+
+
+    expenses
+        .forEach(
+            x => {
+
+                const row =
+                    document.createElement("tr");
+
+
+                row.innerHTML = `
+
+                    <td>${x.id ?? "-"}</td>
+
+                    <td>${escapeHtml(
+                        x.expenseDate || "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.category || "-"
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.description || "-"
+                    )}</td>
+
+                    <td>${money(
+                        x.amount
+                    )}</td>
+
+                    <td>${escapeHtml(
+                        x.paidTo || "-"
+                    )}</td>
+
+                    <td>
+
+                        <button
+                            class="action-btn edit-btn"
+                            onclick="editExpense(${x.id})">
+                            Edit
+                        </button>
+
+                        <button
+                            class="action-btn delete-btn"
+                            onclick="deleteExpense(${x.id})">
+                            Delete
+                        </button>
+
+                    </td>
+
+                `;
+
+                body.appendChild(row);
+
+            }
+        );
+
+}
+
+
+function openExpenseModal(expense = null){
+
+    editingExpenseId =
+        expense
+        ? expense.id
+        : null;
+
+    $("expenseModalTitle")
+        .textContent =
+        expense
+        ? "Edit Expense"
+        : "Add Expense";
+
+
+    $("expenseDate").value =
+        expense?.expenseDate ||
+        new Date()
+            .toISOString()
+            .slice(0,10);
+
+    $("expenseCategory").value =
+        expense?.category || "";
+
+    $("expenseDescription").value =
+        expense?.description || "";
+
+    $("expenseAmount").value =
+        expense?.amount ?? "";
+
+    $("expensePaidTo").value =
+        expense?.paidTo || "";
+
+
+    $("expenseModal")
+        .classList
+        .remove("hidden");
+
+}
+
+
+function closeExpenseModal(){
+
+    $("expenseModal")
+        .classList
+        .add("hidden");
+
+    editingExpenseId = null;
+
+}
+
+
+async function saveExpense(){
+
+    const payload = {
+
+        expenseDate:
+            $("expenseDate").value,
+
+        category:
+            $("expenseCategory").value.trim(),
+
+        description:
+            $("expenseDescription").value.trim(),
+
+        amount:
+            Number(
+                $("expenseAmount").value || 0
+            ),
+
+        paidTo:
+            $("expensePaidTo").value.trim()
+
+    };
+
+
+    if(
+        !payload.expenseDate ||
+        !payload.category ||
+        payload.amount <= 0
+    ){
+
+        alert(
+            "Expense date, category and valid amount are required."
+        );
+
+        return;
+    }
+
+
+    try{
+
+        if(editingExpenseId){
+
+            await api(
+                `/api/expenses/${editingExpenseId}`,
+                {
+                    method:"PUT",
+                    body:JSON.stringify(payload)
+                }
+            );
+
+        }
+        else{
+
+            await api(
+                "/api/expenses",
+                {
+                    method:"POST",
+                    body:JSON.stringify(payload)
+                }
+            );
+
+        }
+
+        closeExpenseModal();
+
+        await loadExpenses();
+
+        await loadDashboard();
+
+    }
+    catch(error){
+
+        alert(
+            error.message ||
+            "Unable to save expense."
+        );
+
+    }
+
+}
+
+
+function editExpense(id){
+
+    const expense =
+        expenses.find(
+            x =>
+            Number(x.id) ===
+            Number(id)
+        );
+
+    if(expense){
+
+        openExpenseModal(expense);
+
+    }
+
+}
+
+
+async function deleteExpense(id){
+
+    if(
+        !confirm(
+            "Are you sure you want to delete this expense?"
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        await api(
+            `/api/expenses/${id}`,
+            {
+                method:"DELETE"
+            }
+        );
+
+        await loadExpenses();
+
+        await loadDashboard();
+
+    }
+    catch(error){
+
+        alert(
+            error.message ||
+            "Unable to delete expense."
+        );
+
+    }
+
+}
+
+
+async function copyTextToClipboard(text){
+
+    try{
+
+        if(
+            navigator.clipboard &&
+            window.isSecureContext
+        ){
+
+            await navigator.clipboard
+                .writeText(text);
+
+            return true;
+
+        }
+
+    }
+    catch(error){
+
+        console.log(
+            "Clipboard API failed:",
+            error
+        );
+
+    }
+
+
+    try{
+
+        const area =
+            document.createElement("textarea");
+
+        area.value = text;
+
+        area.setAttribute(
+            "readonly",
+            ""
+        );
+
+        area.style.position =
+            "fixed";
+
+        area.style.left =
+            "-9999px";
+
+        area.style.top =
+            "0";
+
+        area.style.width =
+            "1px";
+
+        area.style.height =
+            "1px";
+
+        area.style.opacity =
+            "0";
+
+
+        document.body.appendChild(area);
+
+        area.focus();
+
+        area.select();
+
+        area.setSelectionRange(
+            0,
+            area.value.length
+        );
+
+
+        const copied =
+            document.execCommand(
+                "copy"
+            );
+
+
+        document.body.removeChild(area);
+
+        return copied;
+
+    }
+    catch(error){
+
+        console.log(
+            "Copy fallback failed:",
+            error
+        );
+
+        return false;
+
+    }
+
+}
+
+
+async function sharePaymentDetails(){
+
+    const month =
+        $("statusMonth").value;
+
+
+    if(!month){
+
+        alert(
+            "Please select a month first."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !paymentStatusRows ||
+        paymentStatusRows.length === 0
+    ){
+
+        alert(
+            "No payment status data available for this month."
+        );
+
+        return;
+
+    }
+
+
+    let expected = 0;
+
+    let collected = 0;
+
+    let paidCount = 0;
+
+    let partialCount = 0;
+
+    let pendingCount = 0;
+
+
+    paymentStatusRows
+        .forEach(
+            function(x){
+
+                const contribution =
+                    Number(
+                        x.expectedAmount || 0
+                    );
+
+                const paid =
+                    Number(
+                        x.paidAmount || 0
+                    );
+
+
+                expected +=
+                    contribution;
+
+                collected +=
+                    paid;
+
+
+                if(
+                    x.status ===
+                    "PAID"
+                ){
+
+                    paidCount++;
+
+                }
+                else if(
+                    x.status ===
+                    "PARTIAL"
+                ){
+
+                    partialCount++;
+
+                }
+                else{
+
+                    pendingCount++;
+
+                }
+
+            }
+        );
+
+
+    const totalDue =
+        Math.max(
+            0,
+            expected - collected
+        );
+
+
+    const memberDetails =
+        paymentStatusRows
+        .map(
+            function(x,index){
+
+                const contribution =
+                    Number(
+                        x.expectedAmount || 0
+                    );
+
+                const paid =
+                    Number(
+                        x.paidAmount || 0
+                    );
+
+                const due =
+                    Math.max(
+                        0,
+                        contribution - paid
+                    );
+
+
+                return [
+
+                    `${index + 1}. ${
+                        x.memberName || "-"
+                    }`,
+
+                    `Flat: ${
+                        x.flatNumber || "-"
+                    }`,
+
+                    `Phone: ${
+                        x.phoneNumber || "-"
+                    }`,
+
+                    `Contribution: ${
+                        money(contribution)
+                    }`,
+
+                    `Paid: ${
+                        money(paid)
+                    }`,
+
+                    `Due: ${
+                        money(due)
+                    }`,
+
+                    `Status: ${
+                        x.status || "PENDING"
+                    }`,
+
+                    `Payment Date: ${
+                        x.paymentDate || "-"
+                    }`,
+
+                    `Payment Method: ${
+                        x.paymentMethod || "-"
+                    }`,
+
+                    `Transaction ID: ${
+                        x.transactionId || "-"
+                    }`
+
+                ].join("\n");
+
+            }
+        );
+
+
+    const text = [
+
+        "🏠 Ashiyana City I Society",
+
+        `Payment Details - ${month}`,
+
+        "",
+
+        "━━━━━━━━━━━━━━━━━━━━",
+
+        "SUMMARY",
+
+        "━━━━━━━━━━━━━━━━━━━━",
+
+        `Total Members: ${
+            paymentStatusRows.length
+        }`,
+
+        `Expected Amount: ${
+            money(expected)
+        }`,
+
+        `Collected Amount: ${
+            money(collected)
+        }`,
+
+        `Total Due: ${
+            money(totalDue)
+        }`,
+
+        `Paid: ${
+            paidCount
+        }`,
+
+        `Partial: ${
+            partialCount
+        }`,
+
+        `Pending: ${
+            pendingCount
+        }`,
+
+        "",
+
+        "━━━━━━━━━━━━━━━━━━━━",
+
+        "MEMBER PAYMENT DETAILS",
+
+        "━━━━━━━━━━━━━━━━━━━━",
+
+        "",
+
+        memberDetails.join("\n\n"),
+
+        "",
+
+        "━━━━━━━━━━━━━━━━━━━━",
+
+        "Generated from Ashiyana City I Society Management App"
+
+    ].join("\n");
+
+
+    /*
+     * Always copy the complete report FIRST.
+     */
+
+    const copied =
+        await copyTextToClipboard(
+            text
+        );
+
+
+    /*
+     * Then open native share menu.
+     */
+
+    if(
+        navigator.share
+    ){
+
+        try{
+
+            await navigator.share({
+
+                title:
+                    `Payment Details - ${month}`,
+
+                text:
+                    text
+
+            });
+
+
+            if(copied){
+
+                console.log(
+                    "Payment details copied and shared."
+                );
+
+            }
+
+            return;
+
+        }
+        catch(error){
+
+            if(
+                error &&
+                error.name ===
+                "AbortError"
+            ){
+
+                if(copied){
+
+                    alert(
+                        "Payment details copied successfully."
+                    );
+
+                }
+
+                return;
+
+            }
+
+
+            console.log(
+                "Share failed:",
+                error
+            );
+
+        }
+
+    }
+
+
+    if(copied){
+
+        alert(
+            "Payment details copied successfully. " +
+            "You can paste them into WhatsApp, Gmail, Messages, Telegram, or any other app."
+        );
+
+    }
+    else{
+
+        alert(
+            "Unable to copy payment details. Please try again."
+        );
+
+    }
+
+}
+
+
+async function downloadPaymentExcel(){
+
+    if(
+        !paymentStatusRows ||
+        paymentStatusRows.length === 0
+    ){
+
+        alert(
+            "No payment data available."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        typeof XLSX ===
+        "undefined"
+    ){
+
+        alert(
+            "Excel library is not loaded."
+        );
+
+        return;
+
+    }
+
+
+    const month =
+        $("statusMonth").value;
+
+
+    const rows = [];
+
+
+    paymentStatusRows
+        .forEach(
+            x => {
+
+                const contribution =
+                    Number(
+                        x.expectedAmount || 0
+                    );
+
+                const paid =
+                    Number(
+                        x.paidAmount || 0
+                    );
+
+                const due =
+                    Math.max(
+                        0,
+                        contribution - paid
+                    );
+
+
+                rows.push({
+
+                    "Flat Number":
+                        x.flatNumber || "",
+
+                    "Member Name":
+                        x.memberName || "",
+
+                    "Phone Number":
+                        x.phoneNumber || "",
+
+                    "Contribution":
+                        contribution,
+
+                    "Paid Amount":
+                        paid,
+
+                    "Due Amount":
+                        due,
+
+                    "Status":
+                        x.status || "",
+
+                    "Payment Date":
+                        x.paymentDate || "",
+
+                    "Payment Method":
+                        x.paymentMethod || "",
+
+                    "Transaction ID":
+                        x.transactionId || ""
+
+                });
+
+            }
+        );
+
+
+    const worksheet =
+        XLSX.utils.json_to_sheet(
+            rows
+        );
+
+
+    worksheet["!freeze"] = {
+        xSplit:0,
+        ySplit:1
+    };
+
+
+    worksheet["!autofilter"] = {
+        ref:
+            worksheet["!ref"]
+    };
+
+
+    const widths = [
+
+        14,
+        24,
+        16,
+        16,
+        16,
+        16,
+        14,
+        16,
+        18,
+        24
+
+    ];
+
+
+    worksheet["!cols"] =
+        widths.map(
+            w => ({
+                wch:w
+            })
+        );
+
+
+    const range =
+        XLSX.utils.decode_range(
+            worksheet["!ref"]
+        );
+
+
+    for(
+        let c = range.s.c;
+        c <= range.e.c;
+        c++
+    ){
+
+        const cell =
+            worksheet[
+                XLSX.utils.encode_cell({
+                    r:0,
+                    c:c
+                })
+            ];
+
+
+        if(cell){
+
+            cell.s = {
+
+                fill:{
+                    patternType:
+                        "solid",
+
+                    fgColor:{
+                        rgb:
+                            "1F4E78"
+                    }
+
+                },
+
+                font:{
+                    bold:true,
+                    color:{
+                        rgb:
+                            "FFFFFF"
+                    }
+                },
+
+                alignment:{
+                    horizontal:
+                        "center",
+                    vertical:
+                        "center"
+                }
+
+            };
+
+        }
+
+    }
+
+
+    const workbook =
+        XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Payment Details"
     );
-});
 
-// Try to restore an existing server session after refresh.
-(async function restoreSession(){
- try{
-  const r=await fetch('/api/auth/me');
-  const x=await r.json();
-  if(x.authenticated){
-   sessionUser=x;
-   openApp();
-  }
- }catch(e){}
-})();
+
+    XLSX.writeFile(
+        workbook,
+        `Payment_Details_${month}.xlsx`
+    );
+
+}
+
+
+async function downloadExpensesExcel(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/expenses"
+            );
+
+
+        if(
+            !Array.isArray(data) ||
+            data.length === 0
+        ){
+
+            alert(
+                "No expense data available."
+            );
+
+            return;
+
+        }
+
+
+        if(
+            typeof XLSX ===
+            "undefined"
+        ){
+
+            alert(
+                "Excel library is not loaded."
+            );
+
+            return;
+
+        }
+
+
+        const rows =
+            data.map(
+                x => ({
+
+                    "ID":
+                        x.id ?? "",
+
+                    "Date":
+                        x.expenseDate || "",
+
+                    "Category":
+                        x.category || "",
+
+                    "Description":
+                        x.description || "",
+
+                    "Amount":
+                        Number(
+                            x.amount || 0
+                        ),
+
+                    "Paid To":
+                        x.paidTo || ""
+
+                })
+            );
+
+
+        const worksheet =
+            XLSX.utils.json_to_sheet(
+                rows
+            );
+
+
+        worksheet["!freeze"] = {
+            xSplit:0,
+            ySplit:1
+        };
+
+
+        worksheet["!autofilter"] = {
+            ref:
+                worksheet["!ref"]
+        };
+
+
+        worksheet["!cols"] = [
+
+            {wch:10},
+            {wch:16},
+            {wch:20},
+            {wch:35},
+            {wch:16},
+            {wch:24}
+
+        ];
+
+
+        const range =
+            XLSX.utils.decode_range(
+                worksheet["!ref"]
+            );
+
+
+        for(
+            let c = range.s.c;
+            c <= range.e.c;
+            c++
+        ){
+
+            const cell =
+                worksheet[
+                    XLSX.utils.encode_cell({
+                        r:0,
+                        c:c
+                    })
+                ];
+
+
+            if(cell){
+
+                cell.s = {
+
+                    fill:{
+                        patternType:
+                            "solid",
+
+                        fgColor:{
+                            rgb:
+                                "1F4E78"
+                        }
+
+                    },
+
+                    font:{
+                        bold:true,
+                        color:{
+                            rgb:
+                                "FFFFFF"
+                        }
+                    },
+
+                    alignment:{
+                        horizontal:
+                            "center",
+
+                        vertical:
+                            "center"
+
+                    }
+
+                };
+
+            }
+
+        }
+
+
+        const workbook =
+            XLSX.utils.book_new();
+
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Expenses"
+        );
+
+
+        XLSX.writeFile(
+            workbook,
+            "Expenses.xlsx"
+        );
+
+    }
+    catch(error){
+
+        console.error(
+            error
+        );
+
+        alert(
+            error.message ||
+            "Unable to download expenses."
+        );
+
+    }
+
+}
+
+
+async function initializeApp(){
+
+    generateMonths();
+
+    setupTabs();
+
+    await loadDashboard();
+
+    await loadMembers();
+
+    await loadPaymentStatus();
+
+}
+
+
+async function restoreSession(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/auth/me"
+            );
+
+
+        if(
+            data &&
+            data.authenticated
+        ){
+
+            currentUser =
+                data.username;
+
+            currentRole =
+                data.role;
+
+            showApp();
+
+            await initializeApp();
+
+        }
+        else{
+
+            showLogin();
+
+        }
+
+    }
+    catch(error){
+
+        showLogin();
+
+    }
+
+}
+
+
+$("loginBtn")
+    .addEventListener(
+        "click",
+        login
+    );
+
+
+$("loginPassword")
+    .addEventListener(
+        "keydown",
+        function(event){
+
+            if(
+                event.key ===
+                "Enter"
+            ){
+
+                login();
+
+            }
+
+        }
+    );
+
+
+$("logoutBtn")
+    .addEventListener(
+        "click",
+        logout
+    );
+
+
+$("statusMonth")
+    .addEventListener(
+        "change",
+        loadPaymentStatus
+    );
+
+
+$("refreshPaymentsBtn")
+    .addEventListener(
+        "click",
+        loadPaymentStatus
+    );
+
+
+$("sharePaymentBtn")
+    .addEventListener(
+        "click",
+        sharePaymentDetails
+    );
+
+
+$("downloadPaymentBtn")
+    .addEventListener(
+        "click",
+        downloadPaymentExcel
+    );
+
+
+$("downloadExpenseBtn")
+    .addEventListener(
+        "click",
+        downloadExpensesExcel
+    );
+
+
+$("addMemberBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            openMemberModal();
+
+        }
+    );
+
+
+$("cancelMemberBtn")
+    .addEventListener(
+        "click",
+        closeMemberModal
+    );
+
+
+$("saveMemberBtn")
+    .addEventListener(
+        "click",
+        saveMember
+    );
+
+
+$("memberSearch")
+    .addEventListener(
+        "input",
+        renderMembers
+    );
+
+
+$("addExpenseBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            openExpenseModal();
+
+        }
+    );
+
+
+$("cancelExpenseBtn")
+    .addEventListener(
+        "click",
+        closeExpenseModal
+    );
+
+
+$("saveExpenseBtn")
+    .addEventListener(
+        "click",
+        saveExpense
+    );
+
+
+$("cancelPaymentBtn")
+    .addEventListener(
+        "click",
+        closePaymentModal
+    );
+
+
+$("savePaymentBtn")
+    .addEventListener(
+        "click",
+        savePayment
+    );
+
+
+restoreSession();
+
 </script>
+
 </body>
 </html>
