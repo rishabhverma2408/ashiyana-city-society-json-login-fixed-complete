@@ -1,0 +1,8 @@
+target/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+ashiyana-city-society-json-login-fixed-complete/
+*.log
+*.tmp

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Society Expenses</title>
 <style>
-body{font-family:Arial;background:#f4f6f8;margin:0;color:#222}header{background:#17324d;color:#fff;padding:18px}main{max-width:1100px;margin:auto;padding:15px}.card{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}.expense{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}button,input{padding:10px 14px;border:0;border-radius:7px;background:#17324d;color:#fff;cursor:pointer}label{display:block;margin:14px 0 6px;font-weight:bold}input{background:#fff;color:#222;border:1px solid #ccc;margin-left:8px}.small{color:#555;font-size:13px}
+body{font-family:Arial;background:#f4f6f8;margin:0;color:#222}header{background:#17324d;color:#fff;padding:18px}main{max-width:1100px;margin:auto;padding:15px}.card{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}.expense{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}button,input{padding:10px 14px;border:0;border-radius:7px;background:#17324d;color:#fff;cursor:pointer}label{display:block;margin:14px 0 6px;font-weight:bold}input{background:#fff;color:#222;border:1px solid #ccc;margin-left:8px}.small{color:#555;font-size:13px}.edit{margin-top:10px;background:#6c757d}.delete{margin-top:10px;margin-left:6px;background:#dc3545}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.actions button{width:auto;min-width:160px}.excelBtn{background:#0f7b3a}.shareBtn{background:#25d366;color:#08351a;font-weight:bold}
 </style>
 </head>
 <body>
@@ -14,6 +14,10 @@ body{font-family:Arial;background:#f4f6f8;margin:0;color:#222}header{background:
 <button onclick="location.href='/'">← Back</button>
 <div class="card">
  <label>View expenses for month <input id="expenseMonth" type="month" onchange="render()"></label>
+ <div class="actions">
+  <button type="button" class="excelBtn" onclick="downloadExpenseExcel()">📥 Download Excel</button>
+  <button type="button" class="shareBtn" onclick="shareExpenseDetails()">💬 Share / Copy</button>
+ </div>
  <div class="small" id="viewNote"></div>
 </div>
 <div id="summary" class="card">Loading...</div>
@@ -23,23 +27,212 @@ body{font-family:Arial;background:#f4f6f8;margin:0;color:#222}header{background:
 const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
 const e=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
 let expenses=[];
+let canManage=false;
 const currentMonth=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
 
-function render(){
- const month=document.getElementById('expenseMonth').value||currentMonth();
- const isCurrent=month===currentMonth();
- let records=expenses.filter(x=>String(x.expenseDate||'').startsWith(month))
+function selectedMonth(){
+ return document.getElementById('expenseMonth').value||currentMonth();
+}
+
+function recordsForMonth(month){
+ return expenses.filter(x=>String(x.expenseDate||'').startsWith(month))
   .sort((a,b)=>String(b.expenseDate).localeCompare(String(a.expenseDate))||Number(b.id)-Number(a.id));
+}
+
+function render(){
+ const month=selectedMonth();
+ const isCurrent=month===currentMonth();
+ const records=recordsForMonth(month);
  const total=records.reduce((sum,x)=>sum+Number(x.amount||0),0);
- if(isCurrent)records=records.slice(0,10);
- document.getElementById('viewNote').textContent=isCurrent?'Showing the latest 10 current-month expenses. Choose another month to see all of its records.':'Showing all records for the selected month.';
+ document.getElementById('viewNote').textContent=isCurrent
+  ?'Showing all current-month expenses.'
+  :'Showing all records for the selected month.';
  document.getElementById('summary').innerHTML='<b>Expenses:</b> '+money(total)+' &nbsp; <b>Entries shown:</b> '+records.length;
- document.getElementById('list').innerHTML=records.length?records.map(x=>'<div class="expense"><b>'+e(x.expenseDate)+' — '+e(x.category)+'</b><br>'+e(x.description||'-')+'<br><b>'+money(x.amount)+'</b>'+(x.paidTo?' — Paid To: '+e(x.paidTo):'')+'</div>').join(''):'<div class="card">No expenses found for this month.</div>';
+ document.getElementById('list').innerHTML=records.length?records.map(x=>{
+  return '<div class="expense"><b>'+e(x.expenseDate)+' — '+e(x.category)+'</b><br>'+e(x.description||'-')+'<br><b>'+money(x.amount)+'</b>'+(x.paidTo?' — Paid To: '+e(x.paidTo):'')
+   +(canManage?'<br><button class="edit" onclick="editExpense('+Number(x.id)+')">Edit Expense</button><button class="delete" onclick="deleteExpense('+Number(x.id)+')">Delete Expense</button>':'')
+   +'</div>';
+ }).join(''):'<div class="card">No expenses found for this month.</div>';
+}
+
+function excelEscape(value){
+ return String(value??'')
+  .replaceAll('&','&amp;')
+  .replaceAll('<','&lt;')
+  .replaceAll('>','&gt;')
+  .replaceAll('"','&quot;');
+}
+
+function downloadExpenseExcel(){
+ const month=selectedMonth();
+ const records=recordsForMonth(month);
+ if(!records.length){
+  alert('No expenses found for this month');
+  return;
+ }
+
+ const headers=['Date','Category','Description','Amount','Paid To'];
+ const bodyRows=records.map(x=>[
+  x.expenseDate||'',
+  x.category||'',
+  x.description||'',
+  Number(x.amount||0),
+  x.paidTo||''
+ ]);
+
+ const xmlRows=[headers,...bodyRows].map(row=>
+  '<Row>'+row.map(cell=>'<Cell><Data ss:Type="'+(typeof cell==='number'?'Number':'String')+'">'+excelEscape(cell)+'</Data></Cell>').join('')+'</Row>'
+ ).join('');
+
+ const xml=
+  '<?xml version="1.0"?>\n'+
+  '<?mso-application progid="Excel.Sheet"?>\n'+
+  '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n'+
+  ' xmlns:o="urn:schemas-microsoft-com:office:office"\n'+
+  ' xmlns:x="urn:schemas-microsoft-com:office:excel"\n'+
+  ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n'+
+  ' xmlns:html="http://www.w3.org/TR/REC-html40">\n'+
+  '<Worksheet ss:Name="Expenses">\n'+
+  '<Table>\n'+xmlRows+'\n</Table>\n'+
+  '</Worksheet>\n</Workbook>';
+
+ const blob=new Blob([xml],{type:'application/vnd.ms-excel'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download='expenses-'+month+'.xls';
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ URL.revokeObjectURL(url);
+}
+
+function buildExpenseShareText(month){
+ const records=recordsForMonth(month);
+ const total=records.reduce((sum,x)=>sum+Number(x.amount||0),0);
+ const lines=records.map((x,i)=>
+  (i+1)+'. '+ (x.expenseDate||'-')
+  +' | '+(x.category||'-')
+  +' | '+money(x.amount)
+  +(x.description?' | '+x.description:'')
+  +(x.paidTo?' | Paid To: '+x.paidTo:'')
+ );
+
+ return [
+  'Ashiyana City I Society - Expenses',
+  'Month: '+month,
+  '',
+  'Summary',
+  'Total Entries: '+records.length,
+  'Total Expenses: '+money(total),
+  '',
+  'Expense Details',
+  ...lines
+ ].join('\n');
+}
+
+async function copyTextToClipboard(text){
+ if(navigator.clipboard&&window.isSecureContext){
+  await navigator.clipboard.writeText(text);
+  return true;
+ }
+ const area=document.createElement('textarea');
+ area.value=text;
+ area.setAttribute('readonly','');
+ area.style.position='fixed';
+ area.style.left='-9999px';
+ document.body.appendChild(area);
+ area.select();
+ const ok=document.execCommand('copy');
+ area.remove();
+ return ok;
+}
+
+async function shareExpenseDetails(){
+ const month=selectedMonth();
+ const records=recordsForMonth(month);
+ if(!records.length){
+  alert('No expenses found for this month');
+  return;
+ }
+
+ const text=buildExpenseShareText(month);
+ let copied=false;
+ try{
+  copied=await copyTextToClipboard(text);
+ }catch(err){
+  copied=false;
+ }
+
+ if(navigator.share){
+  try{
+   await navigator.share({
+    title:'Expenses - '+month,
+    text:text
+   });
+   if(copied)alert('Expense details copied. You can also paste them in WhatsApp or Messages.');
+   return;
+  }catch(err){
+   if(err&&err.name==='AbortError')return;
+  }
+ }
+
+ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+ alert(copied
+  ?'Expense details copied to clipboard and WhatsApp opened. Paste if needed, then send.'
+  :'WhatsApp opened with expense details. If text is missing, copy failed — try again from a secure browser.');
+}
+
+async function editExpense(id){
+ const x=expenses.find(a=>Number(a.id)===Number(id));
+ if(!x)return;
+ const expenseDate=prompt('Expense Date (YYYY-MM-DD)',x.expenseDate||'');
+ if(expenseDate===null)return;
+ const category=prompt('Category',x.category||'');
+ if(category===null)return;
+ const description=prompt('Description',x.description||'');
+ if(description===null)return;
+ const amount=prompt('Amount',x.amount);
+ if(amount===null)return;
+ const paidTo=prompt('Paid To',x.paidTo||'');
+ if(paidTo===null)return;
+ if(!expenseDate.trim()||!category.trim()||!(Number(amount)>0)){
+  alert('Expense date, category and a valid amount are required');
+  return;
+ }
+ const r=await fetch('/api/expenses/'+id,{
+  method:'PUT',
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+   expenseDate:expenseDate.trim(),
+   category:category.trim(),
+   description:description.trim(),
+   amount:Number(amount),
+   paidTo:paidTo.trim()
+  })
+ });
+ const z=await r.json();
+ if(!r.ok){alert(z.error||z.message||'Update failed');return;}
+ await reload();
+}
+
+async function deleteExpense(id){
+ if(!confirm('Delete this expense? This cannot be undone.'))return;
+ const r=await fetch('/api/expenses/'+id,{method:'DELETE'});
+ const x=await r.json();
+ if(!r.ok){alert(x.error||x.message||'Could not delete expense');return;}
+ await reload();
+}
+
+async function reload(){
+ expenses=await fetch('/api/expenses').then(r=>r.json());
+ render();
 }
 
 async function load(){
  const me=await fetch('/api/auth/me').then(r=>r.json());
  if(!me.authenticated){location.href='/';return}
+ canManage=me.role==='ADMIN'||me.role==='SECRETARY';
  expenses=await fetch('/api/expenses').then(r=>r.json());
  document.getElementById('expenseMonth').value=currentMonth();
  render();

@@ -1,15 +1,8 @@
 [ {
   "id" : 1,
-  "expenseDate" : "2026-08-14",
-  "category" : "200",
-  "description" : "ddd",
-  "amount" : 200.0,
-  "paidTo" : ""
-}, {
-  "id" : 2,
-  "expenseDate" : "2026-07-16",
-  "category" : "j",
+  "expenseDate" : "2026-08-12",
+  "category" : "Cooking",
   "description" : "",
-  "amount" : 500.0,
+  "amount" : 200.0,
   "paidTo" : ""
 } ]

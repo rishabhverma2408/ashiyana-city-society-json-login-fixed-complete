@@ -1,0 +1,17 @@
+[Unit]
+Description=Ashiyana City Society Management
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/society-app
+Environment=PORT=10000
+Environment=DATA_DIR=/var/lib/society-data
+ExecStart=/usr/bin/java -jar /opt/society-app/society-management.jar
+Restart=always
+RestartSec=5
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

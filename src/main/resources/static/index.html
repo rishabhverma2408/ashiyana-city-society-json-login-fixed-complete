@@ -26,6 +26,8 @@ button{background:#17324d;color:#fff;border:0;cursor:pointer}
 .member h3{margin:0 0 5px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .top button{width:auto}.small{font-size:12px;color:#666}.row{display:flex;gap:8px;align-items:center}
 .row>*{flex:1}
+.row .excelBtn{flex:0 0 auto;width:auto;min-width:160px;white-space:nowrap;background:#0f7b3a}
+.row .shareBtn{flex:0 0 auto;width:auto;min-width:160px;white-space:nowrap;background:#25d366;color:#08351a;font-weight:bold}
 .sectionHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sectionHeader h2{margin:0}
 .sectionHeader button{width:auto;min-width:140px}
@@ -64,7 +66,7 @@ button{background:#17324d;color:#fff;border:0;cursor:pointer}
 <div id="currentDuesBanner" class="card">Checking current month dues...</div>
 <div class="card top"><div><h2 id="welcome" style="margin:0"></h2><div id="flatWelcome" class="small"></div></div><button onclick="logout()">Logout</button></div>
 <div class="cards"><div class="metric">Total Flats<b id="mFlats">0</b></div><div class="metric">Collected<b id="mCollected">₹0</b></div><div class="metric">Expenses<b id="mExpenses">₹0</b></div><div class="metric">Current Fund<b id="mBalance">₹0</b></div></div>
-<section id="paymentStatusSection"><h2>Payment Status Details</h2><div class="row"><select id="statusMonth" onchange="loadMonthlyStatus()"></select></div><div id="paymentSummary"></div><div class="tableWrap"><table class="statusTable"><thead id="statusHead"></thead><tbody id="paymentStatusBody"></tbody></table></div></section>
+<section id="paymentStatusSection"><h2>Payment Status Details</h2><div class="row"><select id="statusMonth" onchange="loadMonthlyStatus()"></select><button type="button" class="excelBtn" onclick="downloadPaymentExcel()">📥 Download Excel</button><button type="button" class="shareBtn" onclick="sharePaymentDetails()">💬 Share / Copy</button></div><div id="paymentSummary"></div><div class="tableWrap"><table class="statusTable"><thead id="statusHead"></thead><tbody id="paymentStatusBody"></tbody></table></div></section>
 <section id="memberManagementSection" class="hidden"><div class="sectionHeader"><h2>Add Member</h2><button id="memberToggleButton" onclick="toggleMemberForm()">➕ Add Member</button></div><div id="memberForm" class="hidden"><div class="grid"><input id="fFlat" placeholder="Flat Number *"><input id="fName" placeholder="Member Name *"><input id="fPhone" placeholder="Phone Number *"><input id="fEmail" type="email" placeholder="Email ID"><input id="fContribution" type="number" min="1" placeholder="Monthly Contribution *"><input id="fPassword" type="password" minlength="6" maxlength="15" placeholder="Password (6-15 chars) *"></div><button class="green" onclick="createMember()">Create Member</button><div id="createMsg"></div></div></section>
 <section id="paymentManagementSection" class="hidden"><div class="sectionHeader"><h2>Member Payment Management</h2><button id="paymentToggleButton" onclick="togglePaymentForm()">➕ Add Payment</button></div><div id="paymentForm" class="hidden"><div class="grid"><select id="pMember" onchange="loadSelectedPayment()"><option value="">Select Member</option></select><input id="pAmount" type="number" min="1" placeholder="Amount *"><label class="fieldLabel">Payment Received Date *<input id="pDate" type="date"></label><label class="fieldLabel">Contribution For Month *<input id="pMonth" type="month" onchange="loadSelectedPayment()"></label><select id="pMethod"><option value="UPI">UPI</option><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Other">Other</option></select><input id="pTxn" placeholder="Transaction ID"></div><div class="small">Payment status and monthly collection are calculated using <b>Contribution For Month</b>. Payment Received Date is saved for reference only.</div><div id="selectedPaymentInfo" class="card">Select a member and month to view payment details.</div><button class="green" onclick="savePayment()">Save Payment / Mark Done</button></div></section>
 <section id="expenseManagementSection" class="hidden"><div class="sectionHeader"><h2>Manage Society Expenses</h2><button id="expenseToggleButton" onclick="toggleExpenseForm()">➕ Add Expense</button></div><div id="expenseForm" class="hidden"><div class="grid"><input id="eDate" type="date"><input id="eCategory" placeholder="Category *"><input id="eDescription" placeholder="Description"><input id="eAmount" type="number" min="1" placeholder="Amount *"><input id="ePaidTo" placeholder="Paid To"></div><button class="green" onclick="saveExpense()">Save Expense</button></div></section>
@@ -77,6 +79,7 @@ let sessionUser=null;
 let membersCache=[];
 let expensesCache=[];
 let paymentsCache=[];
+let paymentStatusRows=[];
 
 const $=id=>document.getElementById(id);
 const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
@@ -174,10 +177,10 @@ async function logout(){
 }
 
 async function loadCurrentMonthDues(){
- const start=new Date(2026,7,1);
+ const start=new Date(2026,4,1); // May 2026
  const now=new Date();
  if(now<start){
-  $('currentDuesBanner').innerHTML='<b>ℹ️ No Dues Applicable</b><br>Society payment system starts from August 2026.';
+  $('currentDuesBanner').innerHTML='<b>ℹ️ No Dues Applicable</b><br>Society payment system starts from May 2026.';
   return;
  }
  const month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
@@ -226,19 +229,16 @@ function toggleExpenseForm(){
 function initializeMonths(){
  const now=new Date();
  const options=[];
- // Include historical and upcoming months so payments recorded early or late
- // can always be viewed and managed from the status selector.
- for(let offset=0;offset>=-12;offset--){
-  const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
+ // Payment records are available from May 2026 onwards.
+ // Advance payments are allowed for at most the next 2 months.
+ const start=new Date(2026,4,1);
+ const end=new Date(now.getFullYear(),now.getMonth()+2,1);
+
+ for(let d=new Date(start.getFullYear(),start.getMonth(),1);d<=end;d=new Date(d.getFullYear(),d.getMonth()+1,1)){
   const value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   const label=d.toLocaleString('en-IN',{month:'long',year:'numeric'});
-  options.push(`<option value="${value}">${label}</option>`);
- }
- for(let offset=1;offset<=6;offset++){
-  const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
-  const value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  const label=d.toLocaleString('en-IN',{month:'long',year:'numeric'});
-  options.push(`<option value="${value}">${label}</option>`);
+  const selected=d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()?' selected':'';
+  options.push(`<option value="${value}"${selected}>${label}</option>`);
  }
 
  $('pMonth').innerHTML='<option value="">Select Month</option>'+options.join('');
@@ -279,11 +279,13 @@ async function loadMonthlyStatus(){
 
  const r=await fetch('/api/payments/status?month='+encodeURIComponent(month));
  if(!r.ok){
+  paymentStatusRows=[];
   $('paymentStatusBody').innerHTML='<tr><td>Unable to load payment status</td></tr>';
   return;
  }
 
  const rows=await r.json();
+ paymentStatusRows=rows;
 
  let paid=0,pending=0,partial=0,collected=0,expected=0;
 
@@ -361,6 +363,169 @@ async function loadMonthlyStatus(){
    ${staff?'<td>'+actions+'</td>':''}
   </tr>`;
  }).join('');
+}
+
+function excelEscape(value){
+ return String(value??'')
+  .replaceAll('&','&amp;')
+  .replaceAll('<','&lt;')
+  .replaceAll('>','&gt;')
+  .replaceAll('"','&quot;');
+}
+
+function downloadPaymentExcel(){
+ const month=$('statusMonth').value;
+ if(!month){
+  alert('Please select a month first');
+  return;
+ }
+ if(!paymentStatusRows.length){
+  alert('No payment status data available for this month');
+  return;
+ }
+
+ const headers=[
+  'Member Name',
+  'Phone Number',
+  'Email',
+  'Flat',
+  'Month',
+  'Contribution',
+  'Paid',
+  'Payment Date',
+  'Payment Method',
+  'Transaction ID',
+  'Status'
+ ];
+
+ const bodyRows=paymentStatusRows.map(x=>[
+  x.memberName||'',
+  x.phoneNumber||'',
+  x.email||'',
+  x.flatNumber||'',
+  month,
+  Number(x.expectedAmount||0),
+  Number(x.paidAmount||0),
+  x.paymentDate||'',
+  x.paymentMethod||'',
+  x.transactionId||'',
+  x.status||''
+ ]);
+
+ const xmlRows=[headers,...bodyRows].map(row=>
+  '<Row>'+row.map(cell=>'<Cell><Data ss:Type="'+(typeof cell==='number'?'Number':'String')+'">'+excelEscape(cell)+'</Data></Cell>').join('')+'</Row>'
+ ).join('');
+
+ const xml=
+  '<?xml version="1.0"?>\n'+
+  '<?mso-application progid="Excel.Sheet"?>\n'+
+  '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n'+
+  ' xmlns:o="urn:schemas-microsoft-com:office:office"\n'+
+  ' xmlns:x="urn:schemas-microsoft-com:office:excel"\n'+
+  ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n'+
+  ' xmlns:html="http://www.w3.org/TR/REC-html40">\n'+
+  '<Worksheet ss:Name="Payment Status">\n'+
+  '<Table>\n'+xmlRows+'\n</Table>\n'+
+  '</Worksheet>\n</Workbook>';
+
+ const blob=new Blob([xml],{type:'application/vnd.ms-excel'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download='payment-status-'+month+'.xls';
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
+ URL.revokeObjectURL(url);
+}
+
+function buildPaymentShareText(month){
+ let paid=0,pending=0,partial=0,collected=0,expected=0;
+ const lines=paymentStatusRows
+  .slice()
+  .sort((a,b)=>String(a.flatNumber||'').localeCompare(String(b.flatNumber||''),'en',{numeric:true}))
+  .map((x,i)=>{
+   expected+=Number(x.expectedAmount||0);
+   collected+=Number(x.paidAmount||0);
+   if(x.status==='PAID')paid++;
+   else if(x.status==='PARTIAL')partial++;
+   else pending++;
+   const due=Math.max(0,Number(x.expectedAmount||0)-Number(x.paidAmount||0));
+   return (i+1)+'. Flat '+ (x.flatNumber||'-')
+    +' | '+(x.memberName||'-')
+    +' | '+(x.status||'PENDING')
+    +' | Paid: '+money(x.paidAmount)
+    +(due>0?' | Due: '+money(due):'')
+    +(x.paymentDate?' | Date: '+x.paymentDate:'');
+  });
+
+ return [
+  'Ashiyana City I Society - Payment Status',
+  'Month: '+month,
+  '',
+  'Summary',
+  'Total Members: '+paymentStatusRows.length,
+  'Paid: '+paid+' | Pending: '+pending+' | Partial: '+partial,
+  'Expected: '+money(expected)+' | Collected: '+money(collected),
+  '',
+  'Member Details',
+  ...lines
+ ].join('\n');
+}
+
+async function copyTextToClipboard(text){
+ if(navigator.clipboard&&window.isSecureContext){
+  await navigator.clipboard.writeText(text);
+  return true;
+ }
+ const area=document.createElement('textarea');
+ area.value=text;
+ area.setAttribute('readonly','');
+ area.style.position='fixed';
+ area.style.left='-9999px';
+ document.body.appendChild(area);
+ area.select();
+ const ok=document.execCommand('copy');
+ area.remove();
+ return ok;
+}
+
+async function sharePaymentDetails(){
+ const month=$('statusMonth').value;
+ if(!month){
+  alert('Please select a month first');
+  return;
+ }
+ if(!paymentStatusRows.length){
+  alert('No payment status data available for this month');
+  return;
+ }
+
+ const text=buildPaymentShareText(month);
+ let copied=false;
+ try{
+  copied=await copyTextToClipboard(text);
+ }catch(e){
+  copied=false;
+ }
+
+ if(navigator.share){
+  try{
+   await navigator.share({
+    title:'Payment Status - '+month,
+    text:text
+   });
+   if(copied)alert('Payment details copied. You can also paste them in WhatsApp or Messages.');
+   return;
+  }catch(e){
+   if(e&&e.name==='AbortError')return;
+  }
+ }
+
+ window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+ alert(copied
+  ?'Payment details copied to clipboard and WhatsApp opened. Paste if needed, then send.'
+  :'WhatsApp opened with payment details. If text is missing, copy failed — try again from a secure browser.');
 }
 
 function secretaryCanDeleteMonth(month){
@@ -524,21 +689,16 @@ function renderMembers(rs){
 function renderExpenses(es){
  const admin=sessionUser.role==='ADMIN';
  const sec=sessionUser.role==='SECRETARY';
- const now=new Date();
- const currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 
  $('expenseList').innerHTML=
   es.slice().sort((a,b)=>Number(b.id)-Number(a.id))
-  .map(x=>{
-   const editable=String(x.expenseDate||'').startsWith(currentMonth);
-   return `<div class="member">
+  .map(x=>`<div class="member">
    <b>${escapeHtml(x.expenseDate)} — ${escapeHtml(x.category)}</b><br>
    ${escapeHtml(x.description||'')}<br>
    ${money(x.amount)}${x.paidTo?' — '+escapeHtml(x.paidTo):''}
-   ${(admin||sec)&&editable?`<button onclick="editExpense(${x.id})">Edit</button>`:''}
-   ${(admin||sec)&&editable?`<button class="danger" onclick="deleteExpense(${x.id})">Delete</button>`:''}
-  </div>`;
-  }).join('');
+   ${(admin||sec)?`<button onclick="editExpense(${x.id})">Edit</button>`:''}
+   ${(admin||sec)?`<button class="danger" onclick="deleteExpense(${x.id})">Delete</button>`:''}
+  </div>`).join('');
 }
 
 async function createMember(){
