@@ -7,6 +7,7 @@
 <style>
 body{font-family:Arial;background:#f4f6f8;margin:0;color:#222}header{background:#17324d;color:#fff;padding:18px}main{max-width:1100px;margin:auto;padding:15px}.card{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}.expense{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}button,input{padding:10px 14px;border:0;border-radius:7px;background:#17324d;color:#fff;cursor:pointer}label{display:block;margin:14px 0 6px;font-weight:bold}input{background:#fff;color:#222;border:1px solid #ccc;margin-left:8px}.small{color:#555;font-size:13px}.edit{margin-top:10px;background:#6c757d}.delete{margin-top:10px;margin-left:6px;background:#dc3545}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.actions button{width:auto;min-width:160px}.excelBtn{background:#0f7b3a}.shareBtn{background:#25d366;color:#08351a;font-weight:bold}
 </style>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <header><h1>Society Expenses Details</h1><div>Ashiyana City I Society</div></header>
@@ -63,48 +64,33 @@ function excelEscape(value){
   .replaceAll('"','&quot;');
 }
 
-function downloadExpenseExcel(){
- const month=selectedMonth();
- const records=recordsForMonth(month);
- if(!records.length){
-  alert('No expenses found for this month');
-  return;
- }
+function downloadExpenseExcel() {
+    const month = selectedMonth();
+    const records = recordsForMonth(month);
 
- const headers=['Date','Category','Description','Amount','Paid To'];
- const bodyRows=records.map(x=>[
-  x.expenseDate||'',
-  x.category||'',
-  x.description||'',
-  Number(x.amount||0),
-  x.paidTo||''
- ]);
+    if (!records.length) {
+        alert('No expenses found for this month');
+        return;
+    }
 
- const xmlRows=[headers,...bodyRows].map(row=>
-  '<Row>'+row.map(cell=>'<Cell><Data ss:Type="'+(typeof cell==='number'?'Number':'String')+'">'+excelEscape(cell)+'</Data></Cell>').join('')+'</Row>'
- ).join('');
+    const rows = records.map(x => ({
+        'Date': x.expenseDate || '',
+        'Category': x.category || '',
+        'Description': x.description || '',
+        'Amount': Number(x.amount || 0),
+        'Paid To': x.paidTo || ''
+    }));
 
- const xml=
-  '<?xml version="1.0"?>\n'+
-  '<?mso-application progid="Excel.Sheet"?>\n'+
-  '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n'+
-  ' xmlns:o="urn:schemas-microsoft-com:office:office"\n'+
-  ' xmlns:x="urn:schemas-microsoft-com:office:excel"\n'+
-  ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n'+
-  ' xmlns:html="http://www.w3.org/TR/REC-html40">\n'+
-  '<Worksheet ss:Name="Expenses">\n'+
-  '<Table>\n'+xmlRows+'\n</Table>\n'+
-  '</Worksheet>\n</Workbook>';
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
 
- const blob=new Blob([xml],{type:'application/vnd.ms-excel'});
- const url=URL.createObjectURL(blob);
- const a=document.createElement('a');
- a.href=url;
- a.download='expenses-'+month+'.xls';
- document.body.appendChild(a);
- a.click();
- a.remove();
- URL.revokeObjectURL(url);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Expenses');
+
+    worksheet['!cols'] = [
+        { wch: 15 }, { wch: 20 }, { wch: 45 }, { wch: 15 }, { wch: 25 }
+    ];
+
+    XLSX.writeFile(workbook, 'expenses-' + month + '.xlsx');
 }
 
 function buildExpenseShareText(month){

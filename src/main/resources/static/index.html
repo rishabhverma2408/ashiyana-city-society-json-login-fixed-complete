@@ -40,6 +40,7 @@ button{background:#17324d;color:#fff;border:0;cursor:pointer}
 .societyLinks button{margin-top:6px}
 @media(max-width:700px){h1{font-size:19px}.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{align-items:flex-start}.row{display:block}.statusTable{font-size:13px;min-width:850px}.sectionHeader{align-items:flex-start}.sectionHeader h2{font-size:18px}}
 </style>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <header><h1>Ashiyana City I Society Management App</h1><div>Kudi Kheda, Dadri</div></header>
@@ -373,70 +374,45 @@ function excelEscape(value){
   .replaceAll('"','&quot;');
 }
 
-function downloadPaymentExcel(){
- const month=$('statusMonth').value;
- if(!month){
-  alert('Please select a month first');
-  return;
- }
- if(!paymentStatusRows.length){
-  alert('No payment status data available for this month');
-  return;
- }
+function downloadPaymentExcel() {
+    const month = $('statusMonth').value;
 
- const headers=[
-  'Member Name',
-  'Phone Number',
-  'Email',
-  'Flat',
-  'Month',
-  'Contribution',
-  'Paid',
-  'Payment Date',
-  'Payment Method',
-  'Transaction ID',
-  'Status'
- ];
+    if (!month) {
+        alert('Please select a month first');
+        return;
+    }
 
- const bodyRows=paymentStatusRows.map(x=>[
-  x.memberName||'',
-  x.phoneNumber||'',
-  x.email||'',
-  x.flatNumber||'',
-  month,
-  Number(x.expectedAmount||0),
-  Number(x.paidAmount||0),
-  x.paymentDate||'',
-  x.paymentMethod||'',
-  x.transactionId||'',
-  x.status||''
- ]);
+    if (!paymentStatusRows.length) {
+        alert('No payment status data available for this month');
+        return;
+    }
 
- const xmlRows=[headers,...bodyRows].map(row=>
-  '<Row>'+row.map(cell=>'<Cell><Data ss:Type="'+(typeof cell==='number'?'Number':'String')+'">'+excelEscape(cell)+'</Data></Cell>').join('')+'</Row>'
- ).join('');
+    const rows = paymentStatusRows.map(x => ({
+        'Member Name': x.memberName || '',
+        'Phone Number': x.phoneNumber || '',
+        'Email': x.email || '',
+        'Flat': x.flatNumber || '',
+        'Month': month,
+        'Contribution': Number(x.expectedAmount || 0),
+        'Paid': Number(x.paidAmount || 0),
+        'Payment Date': x.paymentDate || '',
+        'Payment Method': x.paymentMethod || '',
+        'Transaction ID': x.transactionId || '',
+        'Status': x.status || ''
+    }));
 
- const xml=
-  '<?xml version="1.0"?>\n'+
-  '<?mso-application progid="Excel.Sheet"?>\n'+
-  '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n'+
-  ' xmlns:o="urn:schemas-microsoft-com:office:office"\n'+
-  ' xmlns:x="urn:schemas-microsoft-com:office:excel"\n'+
-  ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n'+
-  ' xmlns:html="http://www.w3.org/TR/REC-html40">\n'+
-  '<Worksheet ss:Name="Payment Status">\n'+
-  '<Table>\n'+xmlRows+'\n</Table>\n'+
-  '</Worksheet>\n</Workbook>';
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
 
- const blob=new Blob([xml],{type:'application/vnd.ms-excel'});
- const url=URL.createObjectURL(blob);
- const a=document.createElement('a');
- a.href=url;
- a.download='payment-status-'+month+'.xls';
- document.body.appendChild(a);
- a.click();
- a.remove();
- URL.revokeObjectURL(url);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Payment Status');
+
+    worksheet['!cols'] = [
+        { wch: 22 }, { wch: 15 }, { wch: 30 }, { wch: 12 },
+        { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 18 },
+        { wch: 20 }, { wch: 22 }, { wch: 15 }
+    ];
+
+    XLSX.writeFile(workbook, 'payment-status-' + month + '.xlsx');
 }
 
 function buildPaymentShareText(month){
@@ -912,42 +888,53 @@ async function editExpense(id){
  await load();
 }
 
-function openWhatsApp(name,phone,month,amount){
- let clean=String(phone||'').replace(/\D/g,'');
- if(clean.length===10)clean='91'+clean;
+function openWhatsApp(name, phone, month, amount) {
+    let clean = String(phone || '').replace(/\D/g, '');
 
- const message=
-  `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
+    if (!clean) {
+        alert('Phone number is not available for this member.');
+        return;
+    }
 
- window.open(
-  'https://wa.me/'+clean+'?text='+encodeURIComponent(message),
-  '_blank'
- );
+    if (clean.length === 10) {
+        clean = '91' + clean;
+    }
+
+    const message =
+        `Hello ${name}, your society maintenance payment of ${money(amount)} for ${month} is pending. Please make the payment at your earliest convenience.`;
+
+    const whatsappUrl =
+        'https://web.whatsapp.com/send?phone=' +
+        clean +
+        '&text=' +
+        encodeURIComponent(message);
+
+    window.location.href = whatsappUrl;
 }
 
-function openEmail(name,email,month,amount){
- if(!email){
-  alert('Email address is not available for this member.');
-  return;
- }
+function openEmail(name, email, month, amount) {
+    if (!email || !email.trim()) {
+        alert('Email address is not available for this member.');
+        return;
+    }
 
- const subject=
-  'Society Payment Pending - '+month;
+    const subject = 'Society Payment Pending - ' + month;
 
- const body=
-  `Dear ${name},%0D%0A%0D%0A`+
-  `Your society maintenance payment of ${money(amount)} for ${month} is currently pending.%0D%0A%0D%0A`+
-  `Please make the payment at your earliest convenience.%0D%0A%0D%0A`+
-  `Thank you,%0D%0A`+
-  `Ashiyana City I Society Management%0D%0A`+
-  `Kudi Kheda, Dadri`;
+    const body =
+        `Dear ${name},\n\n` +
+        `Your society maintenance payment of ${money(amount)} for ${month} is currently pending.\n\n` +
+        `Please make the payment at your earliest convenience.\n\n` +
+        `Thank you,\n` +
+        `Ashiyana City I Society Management\n` +
+        `Kudi Kheda, Dadri`;
 
- window.open(
-  'mailto:'+encodeURIComponent(email)+
-  '?subject='+encodeURIComponent(subject)+
-  '&body='+body,
-  '_blank'
- );
+    const gmailUrl =
+        'https://mail.google.com/mail/?view=cm&fs=1' +
+        '&to=' + encodeURIComponent(email) +
+        '&su=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(body);
+
+    window.location.href = gmailUrl;
 }
 
 // Try to restore an existing server session after refresh.
