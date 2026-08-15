@@ -7,7 +7,7 @@
 <style>
 body{font-family:Arial;background:#f4f6f8;margin:0;color:#222}header{background:#17324d;color:#fff;padding:18px}main{max-width:1100px;margin:auto;padding:15px}.card{background:#fff;border-radius:12px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}.expense{border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}button,input{padding:10px 14px;border:0;border-radius:7px;background:#17324d;color:#fff;cursor:pointer}label{display:block;margin:14px 0 6px;font-weight:bold}input{background:#fff;color:#222;border:1px solid #ccc;margin-left:8px}.small{color:#555;font-size:13px}.edit{margin-top:10px;background:#6c757d}.delete{margin-top:10px;margin-left:6px;background:#dc3545}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.actions button{width:auto;min-width:160px}.excelBtn{background:#0f7b3a}.shareBtn{background:#25d366;color:#08351a;font-weight:bold}
 </style>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
 <body>
 <header><h1>Society Expenses Details</h1><div>Ashiyana City I Society</div></header>
@@ -64,6 +64,52 @@ function excelEscape(value){
   .replaceAll('"','&quot;');
 }
 
+function styleExpenseExcelWorksheet(worksheet, rowCount, colCount) {
+    const headerStyle = {
+        font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+        fill: { fgColor: { rgb: '1F4E78' } },
+        alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+        border: {
+            top: { style: 'thin', color: { rgb: 'B7C9D6' } },
+            bottom: { style: 'thin', color: { rgb: 'B7C9D6' } },
+            left: { style: 'thin', color: { rgb: 'B7C9D6' } },
+            right: { style: 'thin', color: { rgb: 'B7C9D6' } }
+        }
+    };
+
+    const bodyBorder = {
+        top: { style: 'thin', color: { rgb: 'D9E2F3' } },
+        bottom: { style: 'thin', color: { rgb: 'D9E2F3' } },
+        left: { style: 'thin', color: { rgb: 'D9E2F3' } },
+        right: { style: 'thin', color: { rgb: 'D9E2F3' } }
+    };
+
+    for (let c = 0; c < colCount; c++) {
+        const cell = XLSX.utils.encode_cell({ r: 0, c });
+        if (worksheet[cell]) worksheet[cell].s = headerStyle;
+    }
+
+    for (let r = 1; r < rowCount; r++) {
+        for (let c = 0; c < colCount; c++) {
+            const cell = XLSX.utils.encode_cell({ r, c });
+            if (!worksheet[cell]) continue;
+            worksheet[cell].s = {
+                font: { color: { rgb: '000000' }, sz: 10 },
+                fill: { fgColor: { rgb: r % 2 === 0 ? 'FFFFFF' : 'EAF2F8' } },
+                alignment: { vertical: 'center', wrapText: true },
+                border: bodyBorder
+            };
+        }
+    }
+
+    worksheet['!autofilter'] = {
+        ref: XLSX.utils.encode_range({
+            s: { r: 0, c: 0 },
+            e: { r: rowCount - 1, c: colCount - 1 }
+        })
+    };
+}
+
 function downloadExpenseExcel() {
     const month = selectedMonth();
     const records = recordsForMonth(month);
@@ -89,6 +135,9 @@ function downloadExpenseExcel() {
     worksheet['!cols'] = [
         { wch: 15 }, { wch: 20 }, { wch: 45 }, { wch: 15 }, { wch: 25 }
     ];
+
+    styleExpenseExcelWorksheet(worksheet, rows.length + 1, 5);
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
 
     XLSX.writeFile(workbook, 'expenses-' + month + '.xlsx');
 }

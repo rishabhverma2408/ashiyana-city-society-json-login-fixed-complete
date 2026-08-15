@@ -40,7 +40,7 @@ button{background:#17324d;color:#fff;border:0;cursor:pointer}
 .societyLinks button{margin-top:6px}
 @media(max-width:700px){h1{font-size:19px}.cards{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{align-items:flex-start}.row{display:block}.statusTable{font-size:13px;min-width:850px}.sectionHeader{align-items:flex-start}.sectionHeader h2{font-size:18px}}
 </style>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
 <body>
 <header><h1>Ashiyana City I Society Management App</h1><div>Kudi Kheda, Dadri</div></header>
@@ -381,6 +381,54 @@ function excelEscape(value){
   .replaceAll('"','&quot;');
 }
 
+function styleExcelWorksheet(worksheet, rowCount, colCount) {
+    const headerStyle = {
+        font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
+        fill: { fgColor: { rgb: '1F4E78' } },
+        alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+        border: {
+            top: { style: 'thin', color: { rgb: 'B7C9D6' } },
+            bottom: { style: 'thin', color: { rgb: 'B7C9D6' } },
+            left: { style: 'thin', color: { rgb: 'B7C9D6' } },
+            right: { style: 'thin', color: { rgb: 'B7C9D6' } }
+        }
+    };
+
+    const bodyStyle = {
+        font: { color: { rgb: '000000' }, sz: 10 },
+        alignment: { vertical: 'center', wrapText: true },
+        border: {
+            top: { style: 'thin', color: { rgb: 'D9E2F3' } },
+            bottom: { style: 'thin', color: { rgb: 'D9E2F3' } },
+            left: { style: 'thin', color: { rgb: 'D9E2F3' } },
+            right: { style: 'thin', color: { rgb: 'D9E2F3' } }
+        }
+    };
+
+    for (let c = 0; c < colCount; c++) {
+        const cell = XLSX.utils.encode_cell({ r: 0, c });
+        if (worksheet[cell]) worksheet[cell].s = headerStyle;
+    }
+
+    for (let r = 1; r < rowCount; r++) {
+        for (let c = 0; c < colCount; c++) {
+            const cell = XLSX.utils.encode_cell({ r, c });
+            if (!worksheet[cell]) continue;
+            worksheet[cell].s = {
+                ...bodyStyle,
+                fill: { fgColor: { rgb: r % 2 === 0 ? 'FFFFFF' : 'EAF2F8' } }
+            };
+        }
+    }
+
+    worksheet['!autofilter'] = {
+        ref: XLSX.utils.encode_range({
+            s: { r: 0, c: 0 },
+            e: { r: rowCount - 1, c: colCount - 1 }
+        })
+    };
+}
+
 function downloadPaymentExcel() {
     const month = $('statusMonth').value;
 
@@ -418,6 +466,44 @@ function downloadPaymentExcel() {
         { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 18 },
         { wch: 20 }, { wch: 22 }, { wch: 15 }
     ];
+
+    styleExcelWorksheet(worksheet, rows.length + 1, 11);
+
+    // Highlight payment status cells for quick reading.
+    const statusCol = 10;
+    rows.forEach((row, i) => {
+        const cell = XLSX.utils.encode_cell({ r: i + 1, c: statusCol });
+        if (!worksheet[cell]) return;
+
+        const status = String(row.Status || '').toUpperCase();
+        let fill = 'EAF2F8';
+        let fontColor = '1F1F1F';
+
+        if (status === 'PAID') {
+            fill = 'D9EAD3';
+            fontColor = '274E13';
+        } else if (status === 'PARTIAL') {
+            fill = 'FFF2CC';
+            fontColor = '7F6000';
+        } else if (status === 'PENDING') {
+            fill = 'FCE4D6';
+            fontColor = '9C0006';
+        }
+
+        worksheet[cell].s = {
+            font: { bold: true, color: { rgb: fontColor } },
+            fill: { fgColor: { rgb: fill } },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            border: {
+                top: { style: 'thin', color: { rgb: 'B7C9D6' } },
+                bottom: { style: 'thin', color: { rgb: 'B7C9D6' } },
+                left: { style: 'thin', color: { rgb: 'B7C9D6' } },
+                right: { style: 'thin', color: { rgb: 'B7C9D6' } }
+            }
+        };
+    });
+
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
 
     XLSX.writeFile(workbook, 'payment-status-' + month + '.xlsx');
 }
@@ -951,51 +1037,41 @@ async function shareNotification(name, phone, month, amount) {
 
     const shareData = {
         title: 'Society Payment Pending',
-        text: message
+        text: phone ? `${message}\n\nMember Phone: ${phone}` : message
     };
 
-    if (phone && String(phone).trim()) {
-        shareData.text += `\n\nMember Phone: ${phone}`;
-    }
-
-    // Mobile/tablet: open the device's native share sheet.
     if (navigator.share) {
         try {
             await navigator.share(shareData);
-        } catch (error) {
-            // User cancelled the share dialog.
+        } catch (e) {
+            // User cancelled the share sheet.
         }
         return;
     }
 
-    // Desktop/browser fallback: copy the message.
     try {
         if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(shareData.text);
         } else {
-            const textArea = document.createElement('textarea');
-            textArea.value = shareData.text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-9999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
+            const area = document.createElement('textarea');
+            area.value = shareData.text;
+            area.style.position = 'fixed';
+            area.style.left = '-9999px';
+            document.body.appendChild(area);
+            area.focus();
+            area.select();
             document.execCommand('copy');
-            textArea.remove();
+            area.remove();
         }
-
         alert('Notification text copied. You can paste it into WhatsApp, Gmail, Messages, Telegram, or another app.');
-    } catch (error) {
-        alert('Unable to open the share menu or copy the notification text.');
+    } catch (e) {
+        alert('Unable to share or copy the notification text.');
     }
 }
 
 document.addEventListener('click', function(event) {
     const button = event.target.closest('.shareBtn');
-
-    if (!button) {
-        return;
-    }
+    if (!button) return;
 
     shareNotification(
         button.dataset.name || '',
